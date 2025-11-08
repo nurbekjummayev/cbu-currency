@@ -1,0 +1,161 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Cbu\Currency\Http\Controllers;
+
+use Cbu\Currency\Exceptions\CbuApiException;
+use Cbu\Currency\Facades\CbuCurrency;
+use Cbu\Currency\Http\Requests\ConvertCurrencyRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Routing\Controller;
+
+/**
+ * Currency Conversion Controller
+ *
+ * Handles currency conversion endpoints.
+ */
+class CurrencyConversionController extends Controller
+{
+    /**
+     * Convert amount between currencies
+     *
+     * Converts a specified amount from one currency to another
+     * using exchange rates for the given date.
+     *
+     * @param ConvertCurrencyRequest $request
+     * @return JsonResponse
+     *
+     * @example
+     * POST /api/currency/convert
+     * {
+     *   "amount": 100,
+     *   "from": "USD",
+     *   "to": "UZS",
+     *   "date": "2025-01-15"
+     * }
+     *
+     * Success Response:
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "amount": 100,
+     *     "from_currency": "USD",
+     *     "to_currency": "UZS",
+     *     "result": 1270500,
+     *     "from_rate": 12705,
+     *     "to_rate": 1,
+     *     "amount_in_uzs": 1270500,
+     *     "date": "2025-01-15"
+     *   }
+     * }
+     *
+     * Error Response:
+     * {
+     *   "success": false,
+     *   "errorMessage": "Currency conversion failed",
+     *   "error": "Detailed error message"
+     * }
+     */
+    public function convert(ConvertCurrencyRequest $request): JsonResponse
+    {
+        try {
+            $amount = $request->getAmount();
+            $from = $request->getFrom();
+            $to = $request->getTo();
+            $date = $request->getDate();
+
+            $result = CbuCurrency::convert()
+                ->amount($amount)
+                ->from($from)
+                ->to($to)
+                ->date($date)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $result->toArray(),
+            ]);
+        } catch (CbuApiException $e) {
+            return response()->json([
+                'success' => false,
+                'errorMessage' => 'Currency conversion failed',
+                'error' => $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'errorMessage' => 'An error occurred during currency conversion',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Get conversion rate between two currencies
+     *
+     * Returns the conversion result for 1 unit of source currency
+     * to target currency. Uses the same conversion logic as convert().
+     *
+     * @param string $from Source currency code
+     * @param string $to Target currency code
+     * @return JsonResponse
+     *
+     * @example
+     * GET /api/currency/convert/rate/USD/UZS?date=2025-01-15
+     *
+     * Success Response:
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "amount": 1,
+     *     "from_currency": "USD",
+     *     "to_currency": "UZS",
+     *     "result": 12705,
+     *     "from_rate": 12705,
+     *     "to_rate": 1,
+     *     "amount_in_uzs": 12705,
+     *     "date": "2025-01-15"
+     *   }
+     * }
+     *
+     * Error Response:
+     * {
+     *   "success": false,
+     *   "errorMessage": "Failed to get conversion rate",
+     *   "error": "Detailed error message"
+     * }
+     */
+    public function rate(string $from, string $to): JsonResponse
+    {
+        try {
+            $from = strtoupper($from);
+            $to = strtoupper($to);
+            $date = request('date') ?? now()->format('Y-m-d');
+
+            $result = CbuCurrency::convert()
+                ->amount(1)
+                ->from($from)
+                ->to($to)
+                ->date($date)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $result->toArray(),
+            ]);
+        } catch (CbuApiException $e) {
+            return response()->json([
+                'success' => false,
+                'errorMessage' => 'Failed to get conversion rate',
+                'error' => $e->getMessage(),
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'errorMessage' => 'An error occurred while fetching conversion rate',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+}

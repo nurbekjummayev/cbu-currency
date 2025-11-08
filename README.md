@@ -1,103 +1,95 @@
-# CBU Currency - O'zbekiston Markaziy Banki Valyuta Kurslari
+# CBU Currency - Central Bank of Uzbekistan Exchange Rates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PHP Version](https://img.shields.io/badge/PHP-%5E8.1%7C%5E8.2%7C%5E8.3%7C%5E8.4-blue)](https://www.php.net/)
 [![Laravel Version](https://img.shields.io/badge/Laravel-%5E10%7C%5E11%7C%5E12-red)](https://laravel.com/)
 [![Tests](https://img.shields.io/badge/tests-43%20passed-brightgreen)](https://pestphp.com/)
 
-O'zbekiston Markaziy Banki (CBU) valyuta kurslari bilan ishlash uchun Laravel paketi. Bu paket valyuta kurslarini olish, saqlash va yuqori aniqlik bilan konvertatsiya qilish uchun qulay metodlarni taqdim etadi.
+A Laravel package for working with Central Bank of Uzbekistan (CBU) currency exchange rates. This package provides easy-to-use methods for fetching, storing, and converting currencies with high precision using BCMath.
 
-[English version](README_EN.md) | **O'zbek versiyasi**
+**English version** | [O'zbek versiyasi](README_UZ.md)
 
-## 📋 Mundarija
+## 📋 Table of Contents
 
-- [Xususiyatlar](#-xususiyatlar)
-- [Talablar](#-talablar)
-- [O'rnatish](#-ornatish)
-- [Konfiguratsiya](#-konfiguratsiya)
-- [Foydalanish](#-foydalanish)
-  - [Builder Pattern](#1-builder-pattern)
-  - [API Endpointlar](#2-api-endpointlar)
-  - [Artisan Buyruqlar](#3-artisan-buyruqlar)
-- [Database Strukturasi](#-database-strukturasi)
+- [Features](#-features)
+- [Requirements](#-requirements)
+- [Installation](#-installation)
+- [Configuration](#-configuration)
+- [Usage](#-usage)
+  - [Currency Conversion](#currency-conversion)
+  - [Get Exchange Rates](#get-exchange-rates)
+  - [Get Currencies List](#get-currencies-list)
+  - [Sync Currencies](#sync-currencies)
+- [Artisan Commands](#-artisan-commands)
+- [Auto Synchronization](#-auto-synchronization)
+- [Database Structure](#-database-structure)
 - [Testing](#-testing)
-- [Litsenziya](#-litsenziya)
+- [API Endpoints](#-api-endpoints)
+- [License](#-license)
 
-## ✨ Xususiyatlar
+## ✨ Features
 
-- 📊 **CBU API Integratsiyasi** - Markaziy bank API dan valyuta kurslarini olish
-- 💱 **Yuqori Aniqlikda Konvertatsiya** - BCMath yordamida aniq hisob-kitoblar
-- 🗄️ **Database Saqlash** - Tarixiy kurslarni saqlash va tez kirish
-- 🎯 **Oddiy API** - Intuitive va qulay interfeys
-- ⚙️ **Sozlanishi** - To'liq konfiguratsiya imkoniyati
-- 🔄 **Avtomatik Sinxronizatsiya** - Valyutalarni avtomatik yangilash
-- 📅 **Tarixiy Ma'lumotlar** - Istalgan sana uchun kurslar
-- 🚀 **RESTful API** - To'liq REST API endpointlar
-- ✅ **To'liq Test Qamrovi** - 43 ta test bilan qoplangan
-- 🎨 **Fluent Interface** - Chiroyli va o'qilishi oson kod
+- 📊 **CBU API Integration** - Fetch currency rates from Central Bank API
+- 💱 **High-Precision Conversion** - Accurate calculations using BCMath
+- 🗄️ **Database Storage** - Store historical rates for fast access
+- 🎯 **Simple API** - Intuitive and convenient interface
+- ⚙️ **Configurable** - Full configuration capabilities
+- 🔄 **Auto Synchronization** - Automatic currency updates
+- 📅 **Historical Data** - Rates for any date
+- 🚀 **RESTful API** - Complete REST API endpoints
+- ✅ **Full Test Coverage** - 43 tests included
+- 🎨 **Fluent Interface** - Beautiful and readable code
 
-## 📦 Talablar
+## 📦 Requirements
 
 - PHP ^8.1|^8.2|^8.3|^8.4
 - Laravel ^10.0|^11.0|^12.0
 - BCMath PHP Extension
 - GuzzleHTTP ^7.0
 
-## 🚀 O'rnatish
+## 🚀 Installation
 
-### 1. Composer orqali o'rnatish
+### 1. Install via Composer
 
 ```bash
-composer require cbu/currency
+composer require nurbekjummayev/cbu-currency
 ```
 
-### 2. Konfiguratsiya faylini chiqarish
+### 2. Publish Configuration and Migrations
 
 ```bash
+# Publish config file
 php artisan vendor:publish --tag=cbu-currency-config
+
+# Publish migrations (optional, auto-loaded by default)
+php artisan vendor:publish --tag=cbu-currency-migrations
 ```
 
-### 3. Migratsiyalarni ishga tushirish
+## ⚙️ Configuration
 
-```bash
-php artisan migrate
-```
-
-### 4. Valyutalarni sinxronlash (ixtiyoriy)
-
-```bash
-# Valyutalar ro'yxatini yangilash
-php artisan cbu:sync-currencies
-
-# Bugungi kurslarni olish
-php artisan cbu:fetch-rates
-```
-
-## ⚙️ Konfiguratsiya
-
-Konfiguratsiya fayli: `config/cbu-currency.php`
+Configuration file: `config/cbu-currency.php`
 
 ```php
 return [
-    // CBU API bazaviy URL
+    // CBU API Base URL
     'base_url' => env('CBU_BASE_URL', 'https://cbu.uz/ru/arkhiv-kursov-valyut/json'),
 
-    // Kesh muddati (daqiqalarda)
+    // Cache duration in minutes
     'cache_duration' => env('CBU_CACHE_DURATION', 60),
 
-    // Default valyuta kodi
+    // Default currency code
     'default_currency' => env('CBU_DEFAULT_CURRENCY', 'USD'),
 
-    // BCMath hisob-kitob aniqligi (o'nlik raqamlar soni)
+    // BCMath calculation scale (decimal places)
     'scale' => env('CBU_SCALE', 2),
 
-    // Ma'lumot manbai: 'database' yoki 'api'
+    // Data source: 'database' or 'api'
     'source' => env('CBU_SOURCE', 'database'),
 
-    // Logging yoqish/o'chirish
+    // Enable/disable logging
     'log_enabled' => env('CBU_LOG_ENABLED', true),
 
-    // API routes sozlamalari
+    // API routes configuration
     'routes' => [
         'prefix' => env('CBU_ROUTES_PREFIX', 'api/cbu'),
         'middleware' => ['api'],
@@ -105,9 +97,9 @@ return [
 ];
 ```
 
-### Environment o'zgaruvchilari
+### Environment Variables
 
-`.env` faylingizga qo'shing:
+Add to your `.env` file:
 
 ```env
 CBU_BASE_URL=https://cbu.uz/ru/arkhiv-kursov-valyut/json
@@ -119,23 +111,132 @@ CBU_LOG_ENABLED=true
 CBU_ROUTES_PREFIX=api/cbu
 ```
 
-### Ma'lumot Manbai
+### Data Source
 
-`CBU_SOURCE` qiymati valyuta kurslarini qayerdan olishni belgilaydi:
+The `CBU_SOURCE` configuration determines where currency rates are fetched from:
 
-- **`database`** (tavsiya etiladi): Mahalliy bazadan oladi - tezroq, offline ishlaydi
-- **`api`**: Har safar CBU API dan to'g'ridan-to'g'ri oladi - yangi ma'lumot, lekin sekinroq
+#### Option 1: Database (Recommended)
+- **Value:** `database`
+- **Pros:** Faster response, works offline, reduced API calls
+- **Cons:** Requires periodic synchronization
+- **Best for:** Production environments
 
-## 📖 Foydalanish
+When using `database` source, you need to:
 
-### 1. Builder Pattern
+**Step 1: Run Migrations**
+```bash
+php artisan migrate
+```
 
-Yanada moslashuvchan konvertatsiya uchun Builder pattern ishlatishingiz mumkin:
+This creates two tables:
+- `currencies` - stores currency information (USD, EUR, etc.)
+- `currency_rates` - stores daily exchange rates
+
+**Step 2: Sync Currencies**
+```bash
+# Fetch and store all available currencies from CBU
+php artisan cbu:sync-currencies
+```
+
+**Step 3: Fetch Exchange Rates**
+```bash
+# Fetch today's rates
+php artisan cbu:fetch-rates
+
+# Fetch rates for specific date
+php artisan cbu:fetch-rates 2025-01-25
+
+# Fetch yesterday's rates
+php artisan cbu:fetch-rates yesterday
+```
+
+#### Option 2: API (Direct)
+- **Value:** `api`
+- **Pros:** Always fresh data, no database needed
+- **Cons:** Slower response, requires internet connection
+- **Best for:** Development or when real-time data is critical
+
+When using `api` source:
+- No migrations needed
+- No synchronization required
+- Data fetched directly from CBU API on each request
+
+## 📖 Usage
+
+### Currency Conversion
+
+The `convert()` method provides a fluent interface for currency conversion with high precision using BCMath.
 
 ```php
 use Cbu\Currency\Facades\CbuCurrency;
 
-// Oddiy konvertatsiya
+// Basic conversion
+$result = CbuCurrency::convert()
+    ->from('USD')
+    ->to('EUR')
+    ->amount(100)
+    ->get();
+
+echo $result->result;        // 94.11
+echo $result->fromRate;      // 12705.00
+echo $result->toRate;        // 13500.00
+echo $result->amountInUzs;   // 1270500.00
+```
+
+#### Convert to UZS
+
+```php
+$result = CbuCurrency::convert()
+    ->from('USD')
+    ->to('UZS')
+    ->amount(100)
+    ->get();
+
+echo $result->result;  // 1270500.00
+```
+
+#### Convert from UZS
+
+```php
+$result = CbuCurrency::convert()
+    ->from('UZS')
+    ->to('USD')
+    ->amount(1000000)
+    ->get();
+
+echo $result->result;  // 78.70
+```
+
+#### Cross Currency Conversion
+
+```php
+// USD to EUR through UZS
+$result = CbuCurrency::convert()
+    ->from('USD')
+    ->to('EUR')
+    ->amount(100)
+    ->get();
+
+// Calculation: 100 USD * 12705 = 1270500 UZS
+//              1270500 UZS / 13500 = 94.11 EUR
+echo $result->result;        // 94.11
+echo $result->amountInUzs;   // 1270500.00
+```
+
+#### Using Numeric Codes
+
+```php
+$result = CbuCurrency::convert()
+    ->fromCode(840)  // USD
+    ->toCode(978)    // EUR
+    ->amount(100)
+    ->get();
+```
+
+#### Specify Date
+
+```php
+// Specific date
 $result = CbuCurrency::convert()
     ->from('USD')
     ->to('EUR')
@@ -143,30 +244,7 @@ $result = CbuCurrency::convert()
     ->date('2025-01-25')
     ->get();
 
-echo $result->amount;        // 100
-echo $result->fromCurrency;  // "USD"
-echo $result->toCurrency;    // "EUR"
-echo $result->result;        // 94.11
-echo $result->fromRate;      // 12705.00
-echo $result->toRate;        // 13500.00
-echo $result->amountInUzs;   // 1270500.00
-echo $result->date;          // "2025-01-25"
-```
-
-#### Valyuta kodlari orqali konvertatsiya
-
-```php
-// Numeric code orqali
-$result = CbuCurrency::convert()
-    ->fromCode(840)  // USD numeric code
-    ->toCode(978)    // EUR numeric code
-    ->amount(100)
-    ->get();
-```
-
-#### Bugungi sana
-
-```php
+// Today's date
 $result = CbuCurrency::convert()
     ->from('USD')
     ->to('EUR')
@@ -175,24 +253,12 @@ $result = CbuCurrency::convert()
     ->get();
 ```
 
-#### Kesh bilan
-
-```php
-// 60 daqiqa kesh
-$result = CbuCurrency::convert()
-    ->from('USD')
-    ->to('EUR')
-    ->amount(100)
-    ->cache(60)
-    ->get();
-```
-
-#### Ma'lumot manbaini o'zgartirish
+#### Change Data Source
 
 ```php
 use Cbu\Currency\Enums\CurrencySource;
 
-// API dan olish
+// Force API source
 $result = CbuCurrency::convert()
     ->source(CurrencySource::API)
     ->from('USD')
@@ -200,7 +266,7 @@ $result = CbuCurrency::convert()
     ->amount(100)
     ->get();
 
-// Database dan olish
+// Force database source
 $result = CbuCurrency::convert()
     ->source(CurrencySource::DATABASE)
     ->from('USD')
@@ -209,61 +275,340 @@ $result = CbuCurrency::convert()
     ->get();
 ```
 
-#### So'mga konvertatsiya
+#### With Caching
 
 ```php
-// USD ni UZS ga
-$result = CbuCurrency::convert()
-    ->from('USD')
-    ->to('UZS')
-    ->amount(100)
-    ->get();
-
-echo $result->result;        // 1270500.00
-```
-
-#### So'mdan konvertatsiya
-
-```php
-// UZS ni USD ga
-$result = CbuCurrency::convert()
-    ->from('UZS')
-    ->to('USD')
-    ->amount(1000000)
-    ->get();
-
-echo $result->result;        // 78.70
-```
-
-#### Ikki xorijiy valyuta o'rtasida
-
-```php
-// USD ni EUR ga
+// Cache result for 60 minutes
 $result = CbuCurrency::convert()
     ->from('USD')
     ->to('EUR')
     ->amount(100)
+    ->cache(60)
     ->get();
-
-// Hisob-kitob: 100 USD * 12705 = 1270500 UZS
-//              1270500 UZS / 13500 = 94.11 EUR
-echo $result->result;        // 94.11
-echo $result->amountInUzs;   // 1270500.00
 ```
 
-### 2. API Endpointlar
+### Get Exchange Rates
 
-Paket avtomatik ravishda RESTful API endpointlarni ro'yxatdan o'tkazadi.
+The `rate()` method retrieves exchange rates for specific currencies and dates.
+
+```php
+use Cbu\Currency\Facades\CbuCurrency;
+
+// Get single currency rate for today
+$rate = CbuCurrency::rate('USD');
+
+echo $rate->ccy;      // "USD"
+echo $rate->rate;     // 12705.00
+echo $rate->diff;     // 15.25
+echo $rate->date;     // "2025-11-09"
+```
+
+#### Get Rate for Specific Date
+
+```php
+// Get USD rate for specific date
+$rate = CbuCurrency::rate('USD', '2025-01-25');
+
+echo $rate->rate;  // 12705.00
+echo $rate->date;  // "2025-01-25"
+```
+
+#### Get All Rates
+
+```php
+// Get all currencies rates for today
+$rates = CbuCurrency::rate();
+
+foreach ($rates as $rate) {
+    echo "{$rate->ccy}: {$rate->rate}\n";
+}
+// USD: 12705.00
+// EUR: 13500.00
+// RUB: 130.00
+```
+
+#### Get All Rates for Specific Date
+
+```php
+// Get all rates for specific date
+$rates = CbuCurrency::rate(null, '2025-01-25');
+
+foreach ($rates as $rate) {
+    echo "{$rate->ccy}: {$rate->rate} ({$rate->date})\n";
+}
+```
+
+### Get Currencies List
+
+The `currencies()` method retrieves available currency information.
+
+```php
+use Cbu\Currency\Facades\CbuCurrency;
+
+// Get all currencies
+$currencies = CbuCurrency::currencies();
+
+foreach ($currencies as $currency) {
+    echo "{$currency->ccy} - {$currency->name_en}\n";
+}
+// USD - US Dollar
+// EUR - Euro
+// RUB - Russian Ruble
+```
+
+#### Get Specific Currency
+
+```php
+// Get single currency info
+$currency = CbuCurrency::currencies('USD');
+
+echo $currency->ccy;       // "USD"
+echo $currency->name_en;   // "US Dollar"
+echo $currency->name_uz;   // "AQSH dollari"
+echo $currency->name_ru;   // "Доллар США"
+echo $currency->code;      // 840
+```
+
+#### Get Currency Codes Only
+
+```php
+// Get array of currency codes
+$codes = CbuCurrency::currencies()->pluck('ccy')->toArray();
+
+// ['USD', 'EUR', 'RUB', 'GBP', 'JPY', ...]
+```
+
+### Sync Currencies
+
+The `sync()` method synchronizes currencies and rates from CBU API to your database.
+
+```php
+use Cbu\Currency\Facades\CbuCurrency;
+
+// Sync currencies list
+CbuCurrency::sync('currencies');
+
+// Sync today's rates
+CbuCurrency::sync('rates');
+
+// Sync rates for specific date
+CbuCurrency::sync('rates', '2025-01-25');
+```
+
+#### Sync Both Currencies and Rates
+
+```php
+// Sync both currencies and rates
+CbuCurrency::sync('currencies');
+CbuCurrency::sync('rates');
+```
+
+## 🔧 Artisan Commands
+
+The package provides two Artisan commands for managing currency data.
+
+### 1. Sync Currencies
+
+Fetch and store all available currencies from CBU API to database.
+
+```bash
+php artisan cbu:sync-currencies
+```
+
+**What it does:**
+- Fetches all currencies from CBU API
+- Adds new currencies to `currencies` table
+- Updates existing currency information
+
+**Example output:**
+```
+Fetching currencies from CBU API...
+Found 30 currencies
+Synced: USD, EUR, RUB, GBP, JPY, CHF...
+Currency synchronization completed successfully.
+```
+
+**When to use:**
+- After initial installation
+- When CBU adds new currencies
+- Weekly maintenance (recommended)
+
+### 2. Fetch Exchange Rates
+
+Fetch and store exchange rates for a specific date.
+
+```bash
+# Fetch today's rates
+php artisan cbu:fetch-rates
+
+# Fetch for specific date
+php artisan cbu:fetch-rates 2025-01-25
+
+# Fetch yesterday's rates
+php artisan cbu:fetch-rates yesterday
+
+# Fetch for relative date
+php artisan cbu:fetch-rates "1 week ago"
+php artisan cbu:fetch-rates "2025-01-01"
+```
+
+**What it does:**
+- Fetches exchange rates from CBU API for specified date
+- Stores rates in `currency_rates` table
+- Updates existing rates if already present
+
+**Example output:**
+```
+Fetching rates for date: 2025-01-25
+Found 30 rates
+Saved: USD (12705.00), EUR (13500.00), RUB (130.00), GBP (16200.00)...
+Currency rates fetched successfully.
+```
+
+**When to use:**
+- Daily to keep rates up-to-date
+- To fetch historical rates
+- After syncing currencies
+
+## ⏰ Auto Synchronization
+
+For production environments, automate currency updates using Laravel's Task Scheduler.
+
+### Laravel Scheduler
+
+Add to `app/Console/Kernel.php`:
+
+```php
+<?php
+
+namespace App\Console;
+
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+
+class Kernel extends ConsoleKernel
+{
+    protected function schedule(Schedule $schedule)
+    {
+        // Fetch rates daily at 10:00 AM (after CBU updates)
+        $schedule->command('cbu:fetch-rates')
+            ->dailyAt('10:00')
+            ->onFailure(function () {
+                // Notify admin if sync fails
+            });
+
+        // Sync currencies every Monday at 9:00 AM
+        $schedule->command('cbu:sync-currencies')
+            ->weekly()
+            ->mondays()
+            ->at('09:00');
+    }
+}
+```
+
+### Activate Scheduler
+
+Ensure the Laravel scheduler is running by adding this to your cron:
+
+```bash
+* * * * * cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1
+```
+
+### Alternative: Direct Cron Jobs
+
+If not using Laravel Scheduler, add cron jobs directly:
+
+```bash
+# Fetch rates daily at 10:00 AM
+0 10 * * * cd /path-to-your-project && php artisan cbu:fetch-rates
+
+# Sync currencies every Monday at 9:00 AM
+0 9 * * 1 cd /path-to-your-project && php artisan cbu:sync-currencies
+```
+
+### Docker/Kubernetes
+
+For containerized environments, use supervisor or similar:
+
+```ini
+[program:cbu-scheduler]
+command=/usr/bin/php /var/www/html/artisan schedule:work
+autostart=true
+autorestart=true
+```
+
+## 🗄️ Database Structure
+
+### Currencies Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| ccy | string | Currency code (unique) - USD, EUR, RUB |
+| name_uz | string | Name in Uzbek - AQSH dollari |
+| name_oz | string | Name in Uzbek (Cyrillic) - АҚШ доллари |
+| name_ru | string | Name in Russian - Доллар США |
+| name_en | string | Name in English - US Dollar |
+| code | string | Numeric code - 840 |
+| cbu_id | string | CBU identifier |
+| created_at | timestamp | Creation time |
+| updated_at | timestamp | Update time |
+
+### Currency Rates Table
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| currency_id | bigint | Foreign key to currencies |
+| date | date | Rate date (indexed) |
+| currency_date | date | Original CBU date |
+| rate | decimal(15,4) | Exchange rate - 12705.0000 |
+| diff | decimal(15,4) | Difference from previous - 15.2500 |
+| nominal | integer | Nominal value - 1 |
+| created_at | timestamp | Creation time |
+| updated_at | timestamp | Update time |
+
+**Indexes:**
+- `date` - For fast lookups
+- `['currency_id', 'date']` - Composite index
+
+**Unique constraint:** `['currency_id', 'date']` - Only one rate per currency per day
+
+## 🧪 Testing
+
+The package provides full test coverage using Pest PHP framework.
+
+### Running Tests
+
+```bash
+# All tests
+composer test
+
+# Unit tests only
+vendor/bin/pest --testsuite=Unit
+
+# Feature tests only
+vendor/bin/pest --testsuite=Feature
+
+# Verbose mode
+vendor/bin/pest --verbose
+```
+
+For detailed testing documentation, see [TESTING.md](TESTING.md)
+
+## 🌐 API Endpoints
+
+The package automatically registers RESTful API endpoints for accessing currency data.
 
 **Base URL:** `{your-domain}/api/cbu`
 
-#### 1. Barcha Valyutalar
+### 1. Get All Currencies
 
 ```http
 GET /api/cbu/currencies
 ```
 
-**Javob:**
+**Response:**
 ```json
 {
   "success": true,
@@ -273,32 +618,43 @@ GET /api/cbu/currencies
       "name_uz": "AQSH dollari",
       "name_en": "US Dollar",
       "code": 840
+    },
+    {
+      "ccy": "EUR",
+      "name_uz": "EVRO",
+      "name_en": "Euro",
+      "code": 978
     }
   ]
 }
 ```
 
-#### 2. Valyuta Kodlari
+### 2. Get Currency Codes
 
 ```http
 GET /api/cbu/currencies/codes
 ```
 
-**Javob:**
+**Response:**
 ```json
 {
   "success": true,
-  "data": ["USD", "EUR", "RUB", "GBP", ...]
+  "data": ["USD", "EUR", "RUB", "GBP", "JPY", "CHF"]
 }
 ```
 
-#### 3. Ma'lum Valyuta
+### 3. Get Specific Currency
 
+```http
+GET /api/cbu/currencies/{code}
+```
+
+**Example:**
 ```http
 GET /api/cbu/currencies/USD
 ```
 
-**Javob:**
+**Response:**
 ```json
 {
   "success": true,
@@ -306,18 +662,19 @@ GET /api/cbu/currencies/USD
     "ccy": "USD",
     "name_uz": "AQSH dollari",
     "name_en": "US Dollar",
+    "name_ru": "Доллар США",
     "code": 840
   }
 }
 ```
 
-#### 4. Bugungi Kurslar
+### 4. Get Today's Rates
 
 ```http
 GET /api/cbu/rates/today
 ```
 
-**Javob:**
+**Response:**
 ```json
 {
   "success": true,
@@ -326,28 +683,44 @@ GET /api/cbu/rates/today
       "ccy": "USD",
       "rate": 12705.00,
       "diff": 15.25,
-      "date": "2025-11-03"
+      "date": "2025-11-09"
+    },
+    {
+      "ccy": "EUR",
+      "rate": 13500.00,
+      "diff": -10.50,
+      "date": "2025-11-09"
     }
   ]
 }
 ```
 
-#### 5. Sana Bo'yicha Kurslar
+### 5. Get Rates by Date
 
 ```http
-GET /api/cbu/rates?date=2025-01-15
+GET /api/cbu/rates?date={date}
 ```
 
-**Query Parametrlar:**
-- `date` (ixtiyoriy): Y-m-d formatidagi sana
+**Query Parameters:**
+- `date` (optional): Date in `Y-m-d` format (e.g., `2025-01-25`)
 
-#### 6. Ma'lum Valyuta Kursi
+**Example:**
+```http
+GET /api/cbu/rates?date=2025-01-25
+```
 
+### 6. Get Specific Currency Rate
+
+```http
+GET /api/cbu/rates/{code}?date={date}
+```
+
+**Example:**
 ```http
 GET /api/cbu/rates/USD?date=2025-01-15
 ```
 
-**Javob:**
+**Response:**
 ```json
 {
   "success": true,
@@ -361,52 +734,60 @@ GET /api/cbu/rates/USD?date=2025-01-15
 }
 ```
 
-#### 7. Konvertatsiya (POST)
+### 7. Convert Currency
 
 ```http
 POST /api/cbu/convert
 Content-Type: application/json
+```
 
+**Request Body:**
+```json
 {
   "amount": 100,
   "from": "USD",
-  "to": "UZS",
+  "to": "EUR",
   "date": "2025-01-15"
 }
 ```
 
-**Javob:**
+**Response:**
 ```json
 {
   "success": true,
   "data": {
     "amount": 100,
     "from_currency": "USD",
-    "to_currency": "UZS",
-    "result": 1270500,
-    "from_rate": 12705,
-    "to_rate": 1,
-    "amount_in_uzs": 1270500,
+    "to_currency": "EUR",
+    "result": 94.11,
+    "from_rate": 12705.00,
+    "to_rate": 13500.00,
+    "amount_in_uzs": 1270500.00,
     "date": "2025-01-15"
   }
 }
 ```
 
-**Validation:**
-- `amount` - majburiy, numeric, minimum 0.01
-- `from` - majburiy, 3 harfli valyuta kodi
-- `to` - majburiy, 3 harfli valyuta kodi
-- `date` - ixtiyoriy, Y-m-d formatida, kelajak sana bo'lmasligi kerak
+**Validation Rules:**
+- `amount` - required, numeric, minimum 0.01
+- `from` - required, valid 3-letter currency code
+- `to` - required, valid 3-letter currency code
+- `date` - optional, Y-m-d format, cannot be future date
 
-#### 8. Konvertatsiya Kursi
+### 8. Get Conversion Rate
 
+```http
+GET /api/cbu/convert/rate/{from}/{to}?date={date}
+```
+
+Returns the conversion rate for 1 unit of source currency.
+
+**Example:**
 ```http
 GET /api/cbu/convert/rate/USD/EUR?date=2025-01-15
 ```
 
-1 birlik valyutaning konvertatsiya kursini qaytaradi.
-
-**Javob:**
+**Response:**
 ```json
 {
   "success": true,
@@ -415,179 +796,61 @@ GET /api/cbu/convert/rate/USD/EUR?date=2025-01-15
     "from_currency": "USD",
     "to_currency": "EUR",
     "result": 0.94,
-    "from_rate": 12705,
-    "to_rate": 13500,
-    "amount_in_uzs": 12705,
+    "from_rate": 12705.00,
+    "to_rate": 13500.00,
+    "amount_in_uzs": 12705.00,
     "date": "2025-01-15"
   }
 }
 ```
 
-#### Xato Javoblar
+### Error Responses
 
-Barcha endpointlar bir xil xato formatini qaytaradi:
+All endpoints return a consistent error format:
 
 ```json
 {
   "success": false,
-  "errorMessage": "Valyuta konvertatsiyasi muvaffaqiyatsiz",
-  "error": "Batafsil xato xabari"
+  "errorMessage": "Currency not found",
+  "error": "The currency code 'XYZ' does not exist"
 }
 ```
 
-### 3. Artisan Buyruqlar
+**Common HTTP Status Codes:**
+- `200` - Success
+- `400` - Bad Request (validation failed)
+- `404` - Not Found (currency or rate not found)
+- `500` - Internal Server Error
 
-#### Valyutalarni Sinxronlash
+### Customizing API Routes
 
-CBU dan valyutalar ro'yxatini yangilash:
-
-```bash
-php artisan cbu:sync-currencies
-```
-
-Bu buyruq:
-- CBU API dan barcha valyutalarni oladi
-- Yangi valyutalarni database ga qo'shadi
-- Mavjud valyutalarni yangilaydi
-
-**Chiqish:**
-```
-Fetching currencies from CBU API...
-Found 30 currencies
-Synced: USD, EUR, RUB, GBP...
-Currency synchronization completed successfully.
-```
-
-#### Kurslarni Olish
-
-Ma'lum sana uchun valyuta kurslarini olish va saqlash:
-
-```bash
-# Bugungi kurslarni olish
-php artisan cbu:fetch-rates
-
-# Ma'lum sana uchun
-php artisan cbu:fetch-rates 2025-01-25
-
-# Kecha uchun
-php artisan cbu:fetch-rates yesterday
-
-# 1 hafta oldin
-php artisan cbu:fetch-rates "1 week ago"
-```
-
-Bu buyruq:
-- CBU API dan belgilangan sana uchun kurslarni oladi
-- Har bir valyuta uchun kursni database ga saqlaydi
-- Mavjud kurslarni yangilaydi
-
-**Chiqish:**
-```
-Fetching rates for date: 2025-01-25
-Found 30 rates
-Saved: USD (12705.00), EUR (13500.00), RUB (130.00)...
-Currency rates fetched successfully.
-```
-
-#### Avtomatik Sinxronizatsiya
-
-Kunlik avtomatik yangilanish uchun Laravel Scheduler'dan foydalaning.
-
-`app/Console/Kernel.php` faylida:
+You can customize the API route prefix in `config/cbu-currency.php`:
 
 ```php
-protected function schedule(Schedule $schedule)
-{
-    // Har kuni soat 10:00 da kurslarni yangilash
-    $schedule->command('cbu:fetch-rates')
-        ->dailyAt('10:00');
-
-    // Har dushanba kuni valyutalarni sinxronlash
-    $schedule->command('cbu:sync-currencies')
-        ->weekly()
-        ->mondays()
-        ->at('09:00');
-}
+'routes' => [
+    'prefix' => env('CBU_ROUTES_PREFIX', 'api/cbu'),
+    'middleware' => ['api'],
+],
 ```
 
-## 🗄️ Database Strukturasi
+Or in `.env`:
 
-### Currencies Jadvali
-
-| Ustun | Tur | Tavsif |
-|-------|-----|--------|
-| id | bigint | Primary key |
-| ccy | string | Valyuta kodi (unique) - USD, EUR, RUB |
-| name_uz | string | O'zbek nomlanishi - AQSH dollari |
-| name_oz | string | O'zbek nomlanishi (Kirill) - АҚШ доллари |
-| name_ru | string | Rus nomlanishi - Доллар США |
-| name_en | string | Ingliz nomlanishi - US Dollar |
-| code | string | Raqamli kod - 840 |
-| cbu_id | string | CBU identifikatori |
-| created_at | timestamp | Yaratilgan vaqt |
-| updated_at | timestamp | Yangilangan vaqt |
-
-### Currency Rates Jadvali
-
-| Ustun | Tur | Tavsif |
-|-------|-----|--------|
-| id | bigint | Primary key |
-| currency_id | bigint | Valyutaga foreign key |
-| date | date | Kurs sanasi (indexed) |
-| currency_date | date | CBU original sanasi |
-| rate | decimal(15,4) | Ayirboshlash kursi - 12705.0000 |
-| diff | decimal(15,4) | Oldingi kundan farq - 15.2500 |
-| nominal | integer | Nominal qiymat - 1 |
-| created_at | timestamp | Yaratilgan vaqt |
-| updated_at | timestamp | Yangilangan vaqt |
-
-**Indexlar:**
-- `date` - Tez qidirish uchun
-- `['currency_id', 'date']` - Composite index
-
-**Unique constraint:** `['currency_id', 'date']` - Bir valyuta uchun bir kunda faqat bitta kurs
-
-## 🧪 Testing
-
-Paket Pest PHP test framework yordamida to'liq test qamrovini ta'minlaydi.
-
-### Testlarni Ishga Tushirish
-
-```bash
-# Barcha testlar
-composer test
-
-# Faqat Unit testlar
-vendor/bin/pest --testsuite=Unit
-
-# Faqat Feature testlar
-vendor/bin/pest --testsuite=Feature
-
-# Verbose rejimda
-vendor/bin/pest --verbose
+```env
+CBU_ROUTES_PREFIX=api/v1/currency
 ```
 
-Batafsil test hujjatlari: [TESTING.md](TESTING.md)
+## 📄 License
 
-## 📄 Litsenziya
+MIT License. See [LICENSE](LICENSE) file for details.
 
-MIT litsenziyasi. Batafsil [LICENSE](LICENSE) faylida.
+## 👨‍💻 Author
 
-## 👨‍💻 Muallif
-
-**Jummayev Nurbek**
-- GitHub: [@Jummayev](https://github.com/Jummayev)
+**Nurbek Jummayev**
+- GitHub: [@nurbekjummayev](https://github.com/nurbekjummayev)
 - Email: jummayevnurbek279@gmail.com
 
-## 🔗 Foydali Havolalar
+## 🔗 Useful Links
 
-- [CBU Rasmiy Sayti](https://cbu.uz/)
-- [CBU API Hujjatlari](https://cbu.uz/ru/arkhiv-kursov-valyut/json/)
-- [Laravel Hujjatlari](https://laravel.com/docs)
-- [Pest PHP Hujjatlari](https://pestphp.com/docs)
-
----
-
-<div align="center">
-Made with ❤️ in Uzbekistan
-</div>
+- [CBU Official Website](https://cbu.uz/)
+- [CBU API Documentation](https://cbu.uz/uz/arkhiv-kursov-valyut/veb-masteram/)
+- [Laravel Documentation](https://laravel.com/docs)

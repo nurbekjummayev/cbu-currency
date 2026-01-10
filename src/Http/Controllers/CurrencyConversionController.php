@@ -37,6 +37,8 @@ class CurrencyConversionController extends Controller
      *
      * Success Response:
      * {
+     *   "msg": null,
+     *   "error": null,
      *   "success": true,
      *   "data": {
      *     "amount": 100,
@@ -50,11 +52,12 @@ class CurrencyConversionController extends Controller
      *   }
      * }
      *
-     * Error Response:
+     * Error Response (500):
      * {
+     *   "msg": "Currency conversion failed",
+     *   "error": "Detailed error message",
      *   "success": false,
-     *   "errorMessage": "Currency conversion failed",
-     *   "error": "Detailed error message"
+     *   "data": []
      * }
      */
     public function convert(ConvertCurrencyRequest $request): JsonResponse
@@ -72,22 +75,17 @@ class CurrencyConversionController extends Controller
                 ->date($date)
                 ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $result->toArray(),
-            ]);
+            return okResponse(data: $result->toArray());
         } catch (CbuApiException $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'Currency conversion failed',
-                'error' => $e->getMessage(),
-            ], 500);
+            return serverErrorResponse(
+                msg: 'Currency conversion failed',
+                errorMsg: $e->getMessage()
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'An error occurred during currency conversion',
-                'error' => $e->getMessage(),
-            ], 500);
+            return serverErrorResponse(
+                msg: 'An error occurred during currency conversion',
+                errorMsg: $e->getMessage()
+            );
         }
     }
 
@@ -106,6 +104,8 @@ class CurrencyConversionController extends Controller
      *
      * Success Response:
      * {
+     *   "msg": null,
+     *   "error": null,
      *   "success": true,
      *   "data": {
      *     "amount": 1,
@@ -119,11 +119,12 @@ class CurrencyConversionController extends Controller
      *   }
      * }
      *
-     * Error Response:
+     * Error Response (500):
      * {
+     *   "msg": "Failed to get conversion rate",
+     *   "error": "Detailed error message",
      *   "success": false,
-     *   "errorMessage": "Failed to get conversion rate",
-     *   "error": "Detailed error message"
+     *   "data": []
      * }
      */
     public function rate(string $from, string $to): JsonResponse
@@ -140,22 +141,17 @@ class CurrencyConversionController extends Controller
                 ->date($date)
                 ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $result->toArray(),
-            ]);
+            return okResponse(data: $result->toArray());
         } catch (CbuApiException $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'Failed to get conversion rate',
-                'error' => $e->getMessage(),
-            ], 500);
+            return serverErrorResponse(
+                msg: 'Failed to get conversion rate',
+                errorMsg: $e->getMessage()
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'An error occurred while fetching conversion rate',
-                'error' => $e->getMessage(),
-            ], 500);
+            return serverErrorResponse(
+                msg: 'An error occurred while fetching conversion rate',
+                errorMsg: $e->getMessage()
+            );
         }
     }
 }

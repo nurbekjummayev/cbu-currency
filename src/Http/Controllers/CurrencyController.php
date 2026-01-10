@@ -32,6 +32,8 @@ class CurrencyController extends Controller
      *
      * Success Response:
      * {
+     *   "msg": null,
+     *   "error": null,
      *   "success": true,
      *   "data": [
      *     {
@@ -51,10 +53,9 @@ class CurrencyController extends Controller
     {
         $currencies = CbuCurrency::currencies()->all();
 
-        return response()->json([
-            'success' => true,
-            'data' => $currencies->map(fn($currency) => $currency->toArray()),
-        ]);
+        return okResponse(
+            data: $currencies->map(fn($currency) => $currency->toArray())
+        );
     }
 
     /**
@@ -68,20 +69,19 @@ class CurrencyController extends Controller
      * @example
      * GET /api/currency/codes
      *
-     * Response:
+     * Success Response:
      * {
+     *   "msg": null,
+     *   "error": null,
      *   "success": true,
-     *   "data": ["USD", "EUR", "RUB", "GBP", ...],
+     *   "data": ["USD", "EUR", "RUB", "GBP", ...]
      * }
      */
     public function codes(): JsonResponse
     {
         $codes = array_column(CurrencyCcy::cases(), 'value');
 
-        return response()->json([
-            'success' => true,
-            'data' => $codes,
-        ]);
+        return okResponse(data: $codes);
     }
 
     /**
@@ -97,6 +97,8 @@ class CurrencyController extends Controller
      *
      * Success Response:
      * {
+     *   "msg": null,
+     *   "error": null,
      *   "success": true,
      *   "data": {
      *     "id": 1,
@@ -110,11 +112,14 @@ class CurrencyController extends Controller
      *   }
      * }
      *
-     * Error Response:
+     * Error Response (404):
      * {
+     *   "msg": "Invalid currency code",
+     *   "error": null,
      *   "success": false,
-     *   "errorMessage": "Currency not found",
-     *   "error": "Currency 'XYZ' not found in database"
+     *   "data": {
+     *     "ccy": "XYZ"
+     *   }
      * }
      */
     public function show(string $ccy): JsonResponse
@@ -122,11 +127,10 @@ class CurrencyController extends Controller
         try {
             $ccy = CurrencyCcy::from(strtoupper($ccy));
         } catch (\ValueError $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'Invalid currency code',
-                'error' => "Currency code '{$code}' is not supported",
-            ], 404);
+            return notFoundRequestResponse(
+                msg: 'Invalid currency code',
+                data: ['ccy' => $ccy]
+            );
         }
 
         $currency = CbuCurrency::currencies()
@@ -134,16 +138,12 @@ class CurrencyController extends Controller
             ->get();
 
         if (!$currency) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'Currency not found',
-                'error' => "Currency '{$ccy->value}' not found in database",
-            ], 404);
+            return notFoundRequestResponse(
+                msg: 'Currency not found',
+                data: ['ccy' => $ccy->value]
+            );
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $currency->toArray(),
-        ]);
+        return okResponse(data: $currency->toArray());
     }
 }

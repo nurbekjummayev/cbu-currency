@@ -611,6 +611,8 @@ GET /api/cbu/currencies
 **Response:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": [
     {
@@ -638,6 +640,8 @@ GET /api/cbu/currencies/codes
 **Response:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": ["USD", "EUR", "RUB", "GBP", "JPY", "CHF"]
 }
@@ -657,6 +661,8 @@ GET /api/cbu/currencies/USD
 **Response:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": {
     "ccy": "USD",
@@ -677,6 +683,8 @@ GET /api/cbu/rates/today
 **Response:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": [
     {
@@ -723,6 +731,8 @@ GET /api/cbu/rates/USD?date=2025-01-15
 **Response:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": {
     "ccy": "USD",
@@ -754,6 +764,8 @@ Content-Type: application/json
 **Response:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": {
     "amount": 100,
@@ -790,6 +802,8 @@ GET /api/cbu/convert/rate/USD/EUR?date=2025-01-15
 **Response:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": {
     "amount": 1,
@@ -810,9 +824,10 @@ All endpoints return a consistent error format:
 
 ```json
 {
+  "msg": "Currency not found",
+  "error": "The currency code 'XYZ' does not exist",
   "success": false,
-  "errorMessage": "Currency not found",
-  "error": "The currency code 'XYZ' does not exist"
+  "data": []
 }
 ```
 

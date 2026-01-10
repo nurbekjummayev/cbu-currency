@@ -607,6 +607,8 @@ GET /api/cbu/currencies
 **Javob:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": [
     {
@@ -634,6 +636,8 @@ GET /api/cbu/currencies/codes
 **Javob:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": ["USD", "EUR", "RUB", "GBP", "JPY", "CHF"]
 }
@@ -653,6 +657,8 @@ GET /api/cbu/currencies/USD
 **Javob:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": {
     "ccy": "USD",
@@ -673,6 +679,8 @@ GET /api/cbu/rates/today
 **Javob:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": [
     {
@@ -719,6 +727,8 @@ GET /api/cbu/rates/USD?date=2025-01-15
 **Javob:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": {
     "ccy": "USD",
@@ -750,6 +760,8 @@ Content-Type: application/json
 **Javob:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": {
     "amount": 100,
@@ -786,6 +798,8 @@ GET /api/cbu/convert/rate/USD/EUR?date=2025-01-15
 **Javob:**
 ```json
 {
+  "msg": null,
+  "error": null,
   "success": true,
   "data": {
     "amount": 1,
@@ -806,9 +820,10 @@ Barcha endpointlar bir xil xato formatini qaytaradi:
 
 ```json
 {
+  "msg": "Valyuta topilmadi",
+  "error": "'XYZ' valyuta kodi mavjud emas",
   "success": false,
-  "errorMessage": "Valyuta topilmadi",
-  "error": "'XYZ' valyuta kodi mavjud emas"
+  "data": []
 }
 ```
 

@@ -13,7 +13,8 @@
     "php": "^8.1|^8.2|^8.3|^8.4",
     "ext-bcmath": "*",
     "illuminate/support": "^10|^11|^12",
-    "guzzlehttp/guzzle": "^7.0"
+    "guzzlehttp/guzzle": "^7.0",
+    "nurbekjummayev/laravel-api-response-helpers": "^0.1.1"
   },
   "require-dev": {
     "pestphp/pest": "^2.0|^3.0",

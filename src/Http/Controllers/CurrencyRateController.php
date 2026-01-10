@@ -31,8 +31,10 @@ class CurrencyRateController extends Controller
      * @example
      * GET /api/currency/rates?date=2025-01-15
      *
-     * Response:
+     * Success Response:
      * {
+     *   "msg": null,
+     *   "error": null,
      *   "success": true,
      *   "data": [
      *     {
@@ -46,7 +48,15 @@ class CurrencyRateController extends Controller
      *         "name_en": "US Dollar"
      *       }
      *     }
-     *   ],
+     *   ]
+     * }
+     *
+     * Error Response (500):
+     * {
+     *   "msg": "Failed to fetch currency rates",
+     *   "error": "Detailed error message",
+     *   "success": false,
+     *   "data": []
      * }
      */
     public function index(GetRatesRequest $request): JsonResponse
@@ -58,16 +68,12 @@ class CurrencyRateController extends Controller
                 ->date($date)
                 ->all();
 
-            return response()->json([
-                'success' => true,
-                'data' => $rates,
-            ]);
+            return okResponse(data: $rates);
         } catch (CbuApiException $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'Failed to fetch currency rates',
-                'error' => $e->getMessage(),
-            ], 500);
+            return serverErrorResponse(
+                msg: 'Failed to fetch currency rates',
+                errorMsg: $e->getMessage()
+            );
         }
     }
 
@@ -83,8 +89,10 @@ class CurrencyRateController extends Controller
      * @example
      * GET /api/currency/rates/USD?date=2025-01-15
      *
-     * Response:
+     * Success Response:
      * {
+     *   "msg": null,
+     *   "error": null,
      *   "success": true,
      *   "data": {
      *     "id": 1,
@@ -101,7 +109,15 @@ class CurrencyRateController extends Controller
      *       "name_ru": "Доллар США",
      *       "name_en": "US Dollar"
      *     }
-     *   },
+     *   }
+     * }
+     *
+     * Error Response (500):
+     * {
+     *   "msg": "Failed to fetch rate for currency USD",
+     *   "error": "Detailed error message",
+     *   "success": false,
+     *   "data": []
      * }
      */
     public function show(GetRateByCcyRequest $request): JsonResponse
@@ -115,22 +131,17 @@ class CurrencyRateController extends Controller
                 ->ccy($ccy)
                 ->get();
 
-            return response()->json([
-                'success' => true,
-                'data' => $rate,
-            ]);
+            return okResponse(data: $rate);
         } catch (CbuApiException $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => "Failed to fetch rate for currency {$request->getCcy()}",
-                'error' => $e->getMessage(),
-            ], 500);
+            return serverErrorResponse(
+                msg: "Failed to fetch rate for currency {$request->getCcy()}",
+                errorMsg: $e->getMessage()
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'An error occurred while fetching currency rate',
-                'error' => $e->getMessage(),
-            ], 500);
+            return serverErrorResponse(
+                msg: 'An error occurred while fetching currency rate',
+                errorMsg: $e->getMessage()
+            );
         }
     }
 
@@ -144,10 +155,20 @@ class CurrencyRateController extends Controller
      * @example
      * GET /api/currency/rates/today
      *
-     * Response:
+     * Success Response:
      * {
+     *   "msg": null,
+     *   "error": null,
      *   "success": true,
-     *   "data": [...],
+     *   "data": [...]
+     * }
+     *
+     * Error Response (500):
+     * {
+     *   "msg": "Failed to fetch today's currency rates",
+     *   "error": "Detailed error message",
+     *   "success": false,
+     *   "data": []
      * }
      */
     public function today(): JsonResponse
@@ -159,16 +180,12 @@ class CurrencyRateController extends Controller
                 ->date($today)
                 ->all();
 
-            return response()->json([
-                'success' => true,
-                'data' => $rates,
-            ]);
+            return okResponse(data: $rates);
         } catch (CbuApiException $e) {
-            return response()->json([
-                'success' => false,
-                'errorMessage' => 'Failed to fetch today\'s currency rates',
-                'error' => $e->getMessage(),
-            ], 500);
+            return serverErrorResponse(
+                msg: 'Failed to fetch today\'s currency rates',
+                errorMsg: $e->getMessage()
+            );
         }
     }
 }

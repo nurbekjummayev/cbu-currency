@@ -47,11 +47,31 @@ class CbuApiException extends Exception
 
     public static function invalidAmount(float $amount): self
     {
-        return new self("Invalid amount: {$amount}. Amount must be a finite number greater than 0");
+        $value = self::formatFloat($amount);
+
+        return new self("Invalid amount: {$value}. Amount must be a finite number greater than 0");
     }
 
     public static function invalidRate(string $currencyCode, float $rate, string $date): self
     {
-        return new self("Invalid rate {$rate} for currency {$currencyCode} on {$date}. Rate must be greater than 0");
+        $value = self::formatFloat($rate);
+
+        return new self("Invalid rate {$value} for currency {$currencyCode} on {$date}. Rate must be greater than 0");
+    }
+
+    /**
+     * Format a float for an error message without implicit coercion
+     *
+     * As of PHP 8.5, coercing NAN to another type (including string
+     * interpolation) emits a warning, which test error handlers turn into
+     * an ErrorException — so non-finite values are formatted explicitly.
+     */
+    private static function formatFloat(float $value): string
+    {
+        return match (true) {
+            is_nan($value) => 'NAN',
+            is_infinite($value) => $value > 0 ? 'INF' : '-INF',
+            default => (string) $value,
+        };
     }
 }

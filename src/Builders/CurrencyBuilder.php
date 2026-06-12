@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Cbu\Currency\Builders;
 
+use Cbu\Currency\Builders\Concerns\ResolvesSource;
 use Cbu\Currency\DTOs\CurrencyDto;
 use Cbu\Currency\Enums\CurrencyCcy;
-use Cbu\Currency\Enums\CurrencySource;
-use Cbu\Currency\Repositories\ApiCurrencyRepository;
-use Cbu\Currency\Repositories\DatabaseCurrencyRepository;
 use Cbu\Currency\Repositories\Interfaces\CurrencyRepositoryInterface;
 use Illuminate\Support\Collection;
 
@@ -33,35 +31,18 @@ use Illuminate\Support\Collection;
  */
 class CurrencyBuilder
 {
+    use ResolvesSource;
+
     protected ?CurrencyCcy $ccy = null;
 
     public function __construct(
         protected CurrencyRepositoryInterface $repository
-    )
-    {
-    }
-
-    /**
-     * Set the data source (API or Database)
-     *
-     * @param CurrencySource $source Source to fetch currency data from
-     * @return self
-     */
-    public function source(CurrencySource $source): self
-    {
-        $this->repository = match ($source) {
-            CurrencySource::API => app(ApiCurrencyRepository::class),
-            CurrencySource::DATABASE => app(DatabaseCurrencyRepository::class),
-        };
-
-        return $this;
-    }
+    ) {}
 
     /**
      * Set the currency code to fetch
      *
-     * @param CurrencyCcy|string $ccy Currency code
-     * @return self
+     * @param  CurrencyCcy|string  $ccy  Currency code
      */
     public function ccy(CurrencyCcy|string $ccy): self
     {

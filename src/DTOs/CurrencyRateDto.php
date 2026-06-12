@@ -63,15 +63,17 @@ class CurrencyRateDto
 
     public static function setDataFromModel(CurrencyRate $model): self
     {
+        // Eloquent casts return strings for decimal columns and Carbon
+        // instances for date columns — normalize them to the DTO's types.
         return new self(
-            cbu_id: $model->currency->cbu_id,
-            rate: $model->rate,
-            diff: $model->diff,
-            nominal: $model->nominal,
-            date: $model->date,
+            cbu_id: (int) $model->currency->cbu_id,
+            rate: (float) $model->rate,
+            diff: (float) $model->diff,
+            nominal: (int) $model->nominal,
+            date: $model->date->format('Y-m-d'),
             ccy: $model->currency->ccy,
             code: $model->currency->code,
-            currency_date: $model->currency_date,
+            currency_date: $model->currency_date->format('Y-m-d'),
             name_en: $model->currency->name_en,
             name_uz: $model->currency->name_uz,
             name_oz: $model->currency->name_oz,

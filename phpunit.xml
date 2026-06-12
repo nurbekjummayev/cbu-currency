@@ -16,13 +16,6 @@
         </testsuite>
     </testsuites>
 
-    <coverage>
-        <report>
-            <html outputDirectory="coverage-report"/>
-            <text outputFile="php://stdout" showUncoveredFiles="true"/>
-        </report>
-    </coverage>
-
     <source>
         <include>
             <directory suffix=".php">src</directory>

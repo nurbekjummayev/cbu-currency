@@ -15,6 +15,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | HTTP Timeout
+    |--------------------------------------------------------------------------
+    |
+    | Maximum number of seconds to wait for a CBU API response
+    |
+    */
+    'timeout' => env('CBU_TIMEOUT', 60),
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache Duration
     |--------------------------------------------------------------------------
     |
@@ -25,14 +35,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Calculation Scale
+    | Result Scale
     |--------------------------------------------------------------------------
     |
-    | The number of decimal places for BCMath calculations
-    | Recommended: 2 for currency conversions to maintain precision
+    | The number of decimal places for the FINAL conversion result.
+    | Default 0 means NO rounding — the result is returned at full computed
+    | precision. Internal calculations always run at full precision and are
+    | never rounded mid-calculation. Set a positive value (or use ->scale(n)
+    | per call) to round the final result half-up, or round the returned
+    | result yourself with ->round(n).
     |
     */
-    'scale' => env('CBU_SCALE', 2),
+    'scale' => env('CBU_SCALE', 0),
 
     /*
     |--------------------------------------------------------------------------
@@ -63,12 +77,14 @@ return [
     |--------------------------------------------------------------------------
     |
     | Configure API routes for the currency package.
+    | - enabled: Enable or disable package routes entirely
     | - prefix: The URL prefix for all currency API routes (e.g., 'api/currency')
     | - middleware: Array of middleware to apply to routes
     |
     */
     'routes' => [
-        'prefix' => env('CBU_ROUTE_PREFIX', 'api/currency'),
+        'enabled' => env('CBU_ROUTES_ENABLED', true),
+        'prefix' => env('CBU_ROUTES_PREFIX', 'api/currency'),
         'middleware' => ['api'],
     ],
 ];

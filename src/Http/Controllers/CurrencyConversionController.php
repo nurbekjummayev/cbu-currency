@@ -23,8 +23,6 @@ class CurrencyConversionController extends Controller
      * Converts a specified amount from one currency to another
      * using exchange rates for the given date.
      *
-     * @param ConvertCurrencyRequest $request
-     * @return JsonResponse
      *
      * @example
      * POST /api/currency/convert
@@ -67,6 +65,7 @@ class CurrencyConversionController extends Controller
             $from = $request->getFrom();
             $to = $request->getTo();
             $date = $request->getDate();
+            $scale = $request->getScale();
 
             $result = CbuCurrency::convert()
                 ->amount($amount)
@@ -74,6 +73,11 @@ class CurrencyConversionController extends Controller
                 ->to($to)
                 ->date($date)
                 ->get();
+
+            // Round the final result only when the client asked for it
+            if ($scale !== null) {
+                $result = $result->round($scale);
+            }
 
             return okResponse(data: $result->toArray());
         } catch (CbuApiException $e) {
@@ -95,9 +99,8 @@ class CurrencyConversionController extends Controller
      * Returns the conversion result for 1 unit of source currency
      * to target currency. Uses the same conversion logic as convert().
      *
-     * @param string $from Source currency code
-     * @param string $to Target currency code
-     * @return JsonResponse
+     * @param  string  $from  Source currency code
+     * @param  string  $to  Target currency code
      *
      * @example
      * GET /api/currency/convert/rate/USD/UZS?date=2025-01-15
@@ -129,10 +132,18 @@ class CurrencyConversionController extends Controller
      */
     public function rate(string $from, string $to): JsonResponse
     {
+        // Validate outside the try block so validation errors return 422,
+        // not a generic 500 from the broad exception handler below.
+        $validated = request()->validate([
+            'date' => ['nullable', 'date', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'scale' => ['nullable', 'integer', 'min:0', 'max:20'],
+        ]);
+
         try {
             $from = strtoupper($from);
             $to = strtoupper($to);
-            $date = request('date') ?? now()->format('Y-m-d');
+            $date = $validated['date'] ?? now()->format('Y-m-d');
+            $scale = $validated['scale'] ?? null;
 
             $result = CbuCurrency::convert()
                 ->amount(1)
@@ -140,6 +151,11 @@ class CurrencyConversionController extends Controller
                 ->to($to)
                 ->date($date)
                 ->get();
+
+            // Round the final result only when the client asked for it
+            if ($scale !== null) {
+                $result = $result->round((int) $scale);
+            }
 
             return okResponse(data: $result->toArray());
         } catch (CbuApiException $e) {

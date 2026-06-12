@@ -38,10 +38,12 @@ O'zbekiston Markaziy Banki (CBU) valyuta kurslari bilan oson va qulay ishlash uc
 
 ## 📦 Talablar
 
-- PHP ^8.1|^8.2|^8.3|^8.4
-- Laravel ^10.0|^11.0|^12.0
+- PHP 8.1 – 8.5
+- Laravel ^10.0|^11.0|^12.0|^13.0
 - BCMath PHP Extension
 - GuzzleHTTP ^7.0
+
+> **Eslatma:** Laravel 11/12 uchun PHP >= 8.2, Laravel 13 uchun PHP >= 8.3 talab qilinadi. PHP 8.1 faqat Laravel 10 bilan ishlaydi.
 
 ## 🚀 O'rnatish
 
@@ -76,8 +78,12 @@ return [
     // Standart valyuta kodi
     'default_currency' => env('CBU_DEFAULT_CURRENCY', 'USD'),
 
-    // BCMath hisob-kitob aniqligi (o'nlik raqamlar soni)
-    'scale' => env('CBU_SCALE', 2),
+    // YAKUNIY natijaning o'nlik xonalari soni (standart: 0 = yaxlitlanmaydi,
+    // to'liq hisoblangan aniqlikda qaytadi). Ichki hisob-kitoblar doim
+    // to'liq aniqlikda bajariladi va oraliqda yaxlitlanmaydi. Yaxlitlash
+    // kerak bo'lsa musbat qiymat qo'ying yoki har chaqiruvda ->scale(n),
+    // yoki qaytgan natijada ->round(n) ishlating.
+    'scale' => env('CBU_SCALE', 0),
 
     // Ma'lumot manbai: 'database' yoki 'api'
     'source' => env('CBU_SOURCE', 'database'),
@@ -87,7 +93,8 @@ return [
 
     // API routes sozlamalari
     'routes' => [
-        'prefix' => env('CBU_ROUTES_PREFIX', 'api/cbu'),
+        'enabled' => env('CBU_ROUTES_ENABLED', true),
+        'prefix' => env('CBU_ROUTES_PREFIX', 'api/currency'),
         'middleware' => ['api'],
     ],
 ];
@@ -101,10 +108,11 @@ return [
 CBU_BASE_URL=https://cbu.uz/ru/arkhiv-kursov-valyut/json
 CBU_CACHE_DURATION=60
 CBU_DEFAULT_CURRENCY=USD
-CBU_SCALE=2
+CBU_SCALE=0
 CBU_SOURCE=database
 CBU_LOG_ENABLED=true
-CBU_ROUTES_PREFIX=api/cbu
+CBU_ROUTES_ENABLED=true
+CBU_ROUTES_PREFIX=api/currency
 ```
 
 ### Ma'lumot Manbai
@@ -753,7 +761,8 @@ Content-Type: application/json
   "amount": 100,
   "from": "USD",
   "to": "EUR",
-  "date": "2025-01-15"
+  "date": "2025-01-15",
+  "scale": 2
 }
 ```
 
@@ -781,14 +790,15 @@ Content-Type: application/json
 - `from` - majburiy, to'g'ri 3 harfli valyuta kodi
 - `to` - majburiy, to'g'ri 3 harfli valyuta kodi
 - `date` - ixtiyoriy, Y-m-d formati, kelajak sanasi bo'lmasligi kerak
+- `scale` - ixtiyoriy, 0–20 oralig'idagi butun son; yuborilsa yakuniy natija shu xonagacha yaxlitlanadi, yuborilmasa to'liq aniqlikdagi natija qaytadi
 
 ### 8. Konvertatsiya Kursi
 
 ```http
-GET /api/cbu/convert/rate/{from}/{to}?date={date}
+GET /api/cbu/convert/rate/{from}/{to}?date={date}&scale={scale}
 ```
 
-Manba valyutaning 1 birligi uchun konvertatsiya kursini qaytaradi.
+Manba valyutaning 1 birligi uchun konvertatsiya kursini qaytaradi. Ixtiyoriy `scale` parametri (0–20) yakuniy natijani yaxlitlaydi; yuborilmasa to'liq aniqlikdagi qiymat qaytadi.
 
 **Misol:**
 ```http
@@ -835,11 +845,12 @@ Barcha endpointlar bir xil xato formatini qaytaradi:
 
 ### API Routelarni Sozlash
 
-API route prefiksini `config/cbu-currency.php` faylida sozlashingiz mumkin:
+Paket routelarini yoqish/o'chirish va route prefiksini `config/cbu-currency.php` faylida sozlashingiz mumkin:
 
 ```php
 'routes' => [
-    'prefix' => env('CBU_ROUTES_PREFIX', 'api/cbu'),
+    'enabled' => env('CBU_ROUTES_ENABLED', true),
+    'prefix' => env('CBU_ROUTES_PREFIX', 'api/currency'),
     'middleware' => ['api'],
 ],
 ```
@@ -847,8 +858,25 @@ API route prefiksini `config/cbu-currency.php` faylida sozlashingiz mumkin:
 Yoki `.env` faylida:
 
 ```env
+CBU_ROUTES_ENABLED=true
 CBU_ROUTES_PREFIX=api/v1/currency
 ```
+
+Agar paketni faqat `CbuCurrency` facade orqali ishlatsangiz va tayyor HTTP endpointlar kerak bo'lmasa, ularni butunlay o'chirib qo'ying:
+
+```env
+CBU_ROUTES_ENABLED=false
+```
+
+## 🤖 AI / Laravel Boost Integratsiyasi
+
+Bu paket [Laravel Boost](https://laravel.com/docs/boost) uchun AI guideline va agent skill (`cbu-currency-development`) bilan birga keladi. Agar loyihangizda Boost o'rnatilgan bo'lsa:
+
+```bash
+php artisan boost:install
+```
+
+Boost bu paketni avtomatik aniqlab, guideline va skill'ni o'rnatishni taklif qiladi — natijada AI agentlar (Claude Code, Cursor, Codex va h.k.) `CbuCurrency` facade, builder'lar, sync buyruqlari va API endpointlardan to'g'ri foydalanishni biladi. Paketni mavjud Boost o'rnatilgan loyihaga keyin qo'shgan bo'lsangiz, `php artisan boost:update --discover` buyrug'ini ishlating.
 
 ## 📄 Litsenziya
 

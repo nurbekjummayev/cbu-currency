@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Cbu\Currency\Http\Controllers;
 
 use Cbu\Currency\Enums\CurrencyCcy;
-use Cbu\Currency\Exceptions\CbuApiException;
 use Cbu\Currency\Facades\CbuCurrency;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Routing\Controller;
+use ValueError;
 
 /**
  * Currency Controller
@@ -18,14 +18,12 @@ use Illuminate\Routing\Controller;
  */
 class CurrencyController extends Controller
 {
-
     /**
      * Get all available currencies
      *
      * Returns a list of all currencies from database.
      * Includes currency codes, names in multiple languages.
      *
-     * @return JsonResponse
      *
      * @example
      * GET /api/currency/currencies
@@ -54,7 +52,7 @@ class CurrencyController extends Controller
         $currencies = CbuCurrency::currencies()->all();
 
         return okResponse(
-            data: $currencies->map(fn($currency) => $currency->toArray())
+            data: $currencies->map(fn ($currency) => $currency->toArray())
         );
     }
 
@@ -64,7 +62,6 @@ class CurrencyController extends Controller
      * Returns a simple list of all available currency codes from the enum.
      * Useful for validation or dropdowns.
      *
-     * @return JsonResponse
      *
      * @example
      * GET /api/currency/codes
@@ -89,8 +86,6 @@ class CurrencyController extends Controller
      *
      * Returns detailed information about a specific currency by its code.
      *
-     * @param string $ccy
-     * @return JsonResponse
      *
      * @example
      * GET /api/currency/currencies/USD
@@ -126,7 +121,7 @@ class CurrencyController extends Controller
     {
         try {
             $ccy = CurrencyCcy::from(strtoupper($ccy));
-        } catch (\ValueError $e) {
+        } catch (ValueError $e) {
             return notFoundRequestResponse(
                 msg: 'Invalid currency code',
                 data: ['ccy' => $ccy]
@@ -137,7 +132,7 @@ class CurrencyController extends Controller
             ->ccy($ccy)
             ->get();
 
-        if (!$currency) {
+        if (! $currency) {
             return notFoundRequestResponse(
                 msg: 'Currency not found',
                 data: ['ccy' => $ccy->value]

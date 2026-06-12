@@ -27,9 +27,12 @@ class ApiCurrencyRepository implements CurrencyRepositoryInterface
 {
     protected string $baseUrl;
 
+    protected int $timeout;
+
     public function __construct()
     {
         $this->baseUrl = config('cbu-currency.base_url');
+        $this->timeout = (int) config('cbu-currency.timeout', 60);
     }
 
     /**
@@ -40,13 +43,9 @@ class ApiCurrencyRepository implements CurrencyRepositoryInterface
         $url = $this->baseUrl.$action;
 
         try {
-            $startTime = microtime(true);
-
             $response = Http::acceptJson()
-                ->timeout(60)
+                ->timeout($this->timeout)
                 ->get($url);
-
-            $duration = round((microtime(true) - $startTime) * 1000, 2);
 
             if (! $response->successful()) {
                 throw CbuApiException::requestFailed($url, $response->status());
@@ -136,7 +135,7 @@ class ApiCurrencyRepository implements CurrencyRepositoryInterface
         $today = now()->format('Y-m-d');
         $rates = $this->getRatesByDate($today);
 
-        return $rates->map(fn(CurrencyRateDto $rateDto) => CurrencyDto::setDataFromRateDto($rateDto))
+        return $rates->map(fn (CurrencyRateDto $rateDto) => CurrencyDto::setDataFromRateDto($rateDto))
             ->sortBy('ccy')
             ->values();
     }
@@ -146,7 +145,7 @@ class ApiCurrencyRepository implements CurrencyRepositoryInterface
      *
      * Fetches a single currency's information from the API for today's date.
      *
-     * @param string $code Currency code (e.g., USD, EUR)
+     * @param  string  $code  Currency code (e.g., USD, EUR)
      * @return CurrencyDto|null Currency DTO or null if not found
      *
      * @throws CbuApiException When API request fails

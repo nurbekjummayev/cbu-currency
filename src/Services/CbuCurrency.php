@@ -8,7 +8,6 @@ use Cbu\Currency\Builders\ConvertBuilder;
 use Cbu\Currency\Builders\CurrencyBuilder;
 use Cbu\Currency\Builders\RatesBuilder;
 use Cbu\Currency\Builders\SyncBuilder;
-use Cbu\Currency\Enums\CurrencySource;
 use Cbu\Currency\Repositories\ApiCurrencyRepository;
 use Cbu\Currency\Repositories\DatabaseCurrencyRepository;
 use Cbu\Currency\Repositories\Interfaces\CurrencyRepositoryInterface;
@@ -20,28 +19,9 @@ use Cbu\Currency\Repositories\Interfaces\CurrencyRepositoryInterface;
  */
 class CbuCurrency
 {
-    protected int $scale;
-
-    protected CurrencySource $source;
-
-    protected CurrencyRepositoryInterface $repository;
-
-    public function __construct()
-    {
-        $this->scale = config('cbu-currency.scale', 2);
-        $this->source = CurrencySource::from(config('cbu-currency.source', 'api'));
-        $this->repository = $this->resolveRepository();
-    }
-
-    /**
-     * Resolve the repository based on the configured source
-     */
-    protected function resolveRepository(): CurrencyRepositoryInterface
-    {
-        return $this->source === CurrencySource::API
-            ? app(ApiCurrencyRepository::class)
-            : app(DatabaseCurrencyRepository::class);
-    }
+    public function __construct(
+        protected CurrencyRepositoryInterface $repository
+    ) {}
 
     /**
      * Start building a currency conversion

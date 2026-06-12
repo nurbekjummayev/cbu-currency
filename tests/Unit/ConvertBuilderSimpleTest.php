@@ -17,7 +17,7 @@ beforeEach(function () {
 
 describe('ConvertBuilder validation', function () {
     test('throws exception when from currency is missing', function () {
-        expect(fn() => $this->builder
+        expect(fn () => $this->builder
             ->to('UZS')
             ->amount(100)
             ->get())
@@ -25,7 +25,7 @@ describe('ConvertBuilder validation', function () {
     });
 
     test('throws exception when to currency is missing', function () {
-        expect(fn() => $this->builder
+        expect(fn () => $this->builder
             ->from('USD')
             ->amount(100)
             ->get())
@@ -33,7 +33,7 @@ describe('ConvertBuilder validation', function () {
     });
 
     test('throws exception when amount is missing', function () {
-        expect(fn() => $this->builder
+        expect(fn () => $this->builder
             ->from('USD')
             ->to('UZS')
             ->get())
@@ -41,7 +41,7 @@ describe('ConvertBuilder validation', function () {
     });
 
     test('throws exception when amount is zero', function () {
-        expect(fn() => $this->builder
+        expect(fn () => $this->builder
             ->from('USD')
             ->to('UZS')
             ->amount(0)
@@ -50,7 +50,7 @@ describe('ConvertBuilder validation', function () {
     });
 
     test('throws exception when amount is negative', function () {
-        expect(fn() => $this->builder
+        expect(fn () => $this->builder
             ->from('USD')
             ->to('UZS')
             ->amount(-100)
@@ -59,7 +59,7 @@ describe('ConvertBuilder validation', function () {
     });
 
     test('throws exception for invalid date format', function () {
-        expect(fn() => $this->builder
+        expect(fn () => $this->builder
             ->from('USD')
             ->to('UZS')
             ->amount(100)

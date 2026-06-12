@@ -37,6 +37,7 @@ class ConvertCurrencyRequest extends FormRequest
             'from' => ['required', 'string', Rule::in($currencyCodes)],
             'to' => ['required', 'string', Rule::in($currencyCodes)],
             'date' => ['nullable', 'date', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'scale' => ['nullable', 'integer', 'min:0', 'max:20'],
         ];
     }
 
@@ -58,6 +59,9 @@ class ConvertCurrencyRequest extends FormRequest
             'date.date' => 'The date must be a valid date.',
             'date.date_format' => 'The date must be in Y-m-d format (e.g., 2025-01-15).',
             'date.before_or_equal' => 'The date cannot be in the future.',
+            'scale.integer' => 'The scale must be an integer.',
+            'scale.min' => 'The scale must be at least 0.',
+            'scale.max' => 'The scale may not be greater than 20.',
         ];
     }
 
@@ -91,5 +95,15 @@ class ConvertCurrencyRequest extends FormRequest
     public function getDate(): string
     {
         return $this->validated('date') ?? now()->format('Y-m-d');
+    }
+
+    /**
+     * Get validated scale or null when not provided (no rounding)
+     */
+    public function getScale(): ?int
+    {
+        $scale = $this->validated('scale');
+
+        return $scale !== null ? (int) $scale : null;
     }
 }

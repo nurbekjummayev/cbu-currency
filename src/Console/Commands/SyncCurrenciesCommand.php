@@ -26,6 +26,7 @@ class SyncCurrenciesCommand extends Command
 
     /**
      * Execute the console command.
+     *
      * @throws CbuApiException
      */
     public function handle(): int

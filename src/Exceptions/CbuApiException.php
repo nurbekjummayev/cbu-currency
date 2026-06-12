@@ -47,6 +47,11 @@ class CbuApiException extends Exception
 
     public static function invalidAmount(float $amount): self
     {
-        return new self("Invalid amount: {$amount}. Amount must be greater than 0");
+        return new self("Invalid amount: {$amount}. Amount must be a finite number greater than 0");
+    }
+
+    public static function invalidRate(string $currencyCode, float $rate, string $date): self
+    {
+        return new self("Invalid rate {$rate} for currency {$currencyCode} on {$date}. Rate must be greater than 0");
     }
 }

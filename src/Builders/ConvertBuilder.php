@@ -4,48 +4,57 @@ declare(strict_types=1);
 
 namespace Cbu\Currency\Builders;
 
+use Cbu\Currency\Builders\Concerns\HandlesCaching;
+use Cbu\Currency\Builders\Concerns\ResolvesSource;
 use Cbu\Currency\DTOs\ConversionResultDto;
 use Cbu\Currency\Enums\CurrencyCcy;
 use Cbu\Currency\Enums\CurrencyNumericCode;
-use Cbu\Currency\Enums\CurrencySource;
 use Cbu\Currency\Exceptions\CbuApiException;
 use Cbu\Currency\Helpers\CurrencyHelper;
-use Cbu\Currency\Repositories\ApiCurrencyRepository;
-use Cbu\Currency\Repositories\DatabaseCurrencyRepository;
 use Cbu\Currency\Repositories\Interfaces\CurrencyRepositoryInterface;
-use Illuminate\Support\Facades\Cache;
 
 class ConvertBuilder
 {
+    use HandlesCaching;
+    use ResolvesSource;
+
+    /**
+     * Scale used for all intermediate BCMath operations.
+     *
+     * Intermediate values are never rounded. The final result is returned
+     * at full precision unless a positive scale is configured, in which
+     * case only the final result is rounded (half-up).
+     */
+    protected const INTERNAL_SCALE = 20;
+
     protected ?CurrencyCcy $fromCurrency = null;
 
     protected ?CurrencyCcy $toCurrency = null;
 
     protected ?float $amount = null;
 
-    protected ?string $date = null;
+    protected string $date;
 
     protected int $scale;
-
-    protected ?int $cacheDuration = null;
 
     public function __construct(
         protected CurrencyRepositoryInterface $repository
     ) {
-        $this->scale = config('cbu-currency.scale', 2);
+        $this->scale = (int) config('cbu-currency.scale', 0);
         $this->cacheDuration = config('cbu-currency.cache_duration');
         $this->date = now()->format('Y-m-d');
     }
 
     /**
-     * Set the data source (API or Database)
+     * Set the number of decimal places for the final result
+     *
+     * By default (scale 0) the result is NOT rounded — it is returned at
+     * full computed precision. Set a positive scale to round the final
+     * result half-up to that many decimal places.
      */
-    public function source(CurrencySource $source): self
+    public function scale(int $decimals): self
     {
-        $this->repository = match ($source) {
-            CurrencySource::API => app(ApiCurrencyRepository::class),
-            CurrencySource::DATABASE => app(DatabaseCurrencyRepository::class),
-        };
+        $this->scale = max(0, $decimals);
 
         return $this;
     }
@@ -130,18 +139,6 @@ class ConvertBuilder
     }
 
     /**
-     * Enable caching for currency rates (not conversion result)
-     *
-     * @param  int|null  $minutes  Cache duration in minutes (null = use config default)
-     */
-    public function cache(?int $minutes = null): self
-    {
-        $this->cacheDuration = $minutes;
-
-        return $this;
-    }
-
-    /**
      * Execute the conversion
      *
      * @throws CbuApiException
@@ -163,7 +160,9 @@ class ConvertBuilder
             throw CbuApiException::missingRequiredParameters($missing);
         }
 
-        if ($this->amount <= 0) {
+        // is_finite() also rejects NAN, which slips past comparison checks
+        // because every comparison with NAN evaluates to false.
+        if (! is_finite($this->amount) || $this->amount <= 0) {
             throw CbuApiException::invalidAmount($this->amount);
         }
 
@@ -183,19 +182,63 @@ class ConvertBuilder
     }
 
     /**
-     * Get rate with optional caching
+     * Get the UZS rate for 1 unit of the given currency, with optional caching
+     *
+     * CBU quotes some currencies per nominal (e.g. IDR, IRR, VND are quoted
+     * per 10 units), so the raw rate is divided by the nominal to get the
+     * per-unit rate. Returned as a high-precision decimal string.
      */
-    protected function getRate(string $date, string $ccy): float
+    protected function getUnitRate(string $date, string $ccy): string
     {
-        if ($this->cacheDuration !== null and $this->cacheDuration > 0) {
-            $cacheKey = "cbu_currency_rate_{$date}_{$ccy}_".get_class($this->repository);
+        $cacheKey = "cbu_currency_unit_rate_{$date}_{$ccy}_".get_class($this->repository);
 
-            return Cache::remember($cacheKey, now()->addMinutes($this->cacheDuration), function () use ($date, $ccy) {
-                return $this->repository->getRateByCcy($date, $ccy)->rate;
-            });
+        return $this->remember($cacheKey, function () use ($date, $ccy) {
+            $dto = $this->repository->getRateByCcy($date, $ccy);
+
+            // Guard against bad upstream data: a zero rate would cause a
+            // DivisionByZeroError, a negative rate a nonsense conversion.
+            if (! is_finite($dto->rate) || $dto->rate <= 0) {
+                throw CbuApiException::invalidRate($ccy, $dto->rate, $date);
+            }
+
+            $nominal = max(1, $dto->nominal);
+
+            return bcdiv(self::toDecimal($dto->rate), (string) $nominal, self::INTERNAL_SCALE);
+        });
+    }
+
+    /**
+     * Convert a float to a plain decimal string for BCMath
+     *
+     * Uses PHP's shortest round-trip representation (so 4.56 stays "4.56"
+     * instead of exposing binary noise like "4.5600000000000000053"), and
+     * expands scientific notation (e.g. 1.0E-7) into a plain decimal string.
+     */
+    protected static function toDecimal(float $value): string
+    {
+        $string = (string) $value;
+
+        if (stripos($string, 'e') !== false) {
+            $string = rtrim(sprintf('%.'.self::INTERNAL_SCALE.'F', $value), '0');
+            $string = rtrim($string, '.') ?: '0';
         }
 
-        return $this->repository->getRateByCcy($date, $ccy)->rate;
+        return $string;
+    }
+
+    /**
+     * Finalize a high-precision decimal string into a float
+     *
+     * When a positive scale is set, the value is rounded half-up to that
+     * many decimals; otherwise it is returned at full precision.
+     */
+    protected function finalize(string $value): float
+    {
+        if ($this->scale > 0) {
+            return (float) CurrencyHelper::bcRound($value, $this->scale);
+        }
+
+        return (float) $value;
     }
 
     /**
@@ -204,11 +247,11 @@ class ConvertBuilder
     protected function sameCurrencyConversion(string $date): ConversionResultDto
     {
         $rate = null;
-        $amountInUzs = $this->amount;
+        $amountInUzs = self::toDecimal($this->amount);
 
         if ($this->fromCurrency !== CurrencyCcy::UZS) {
-            $rate = $this->getRate($date, $this->fromCurrency->value);
-            $amountInUzs = (float) bcmul((string) $this->amount, (string) $rate, $this->scale);
+            $rate = $this->getUnitRate($date, $this->fromCurrency->value);
+            $amountInUzs = bcmul(self::toDecimal($this->amount), $rate, self::INTERNAL_SCALE);
         }
 
         return new ConversionResultDto(
@@ -216,9 +259,9 @@ class ConvertBuilder
             fromCurrency: $this->fromCurrency->value,
             toCurrency: $this->toCurrency->value,
             result: $this->amount,
-            fromRate: $rate,
-            toRate: $rate,
-            amountInUzs: $amountInUzs,
+            fromRate: $rate !== null ? (float) $rate : null,
+            toRate: $rate !== null ? (float) $rate : null,
+            amountInUzs: $this->finalize($amountInUzs),
             date: $date,
         );
     }
@@ -228,16 +271,16 @@ class ConvertBuilder
      */
     protected function fromUzs(string $date): ConversionResultDto
     {
-        $rate = $this->getRate($date, $this->toCurrency->value);
-        $result = bcdiv((string) $this->amount, (string) $rate, $this->scale);
+        $rate = $this->getUnitRate($date, $this->toCurrency->value);
+        $result = bcdiv(self::toDecimal($this->amount), $rate, self::INTERNAL_SCALE);
 
         return new ConversionResultDto(
             amount: $this->amount,
             fromCurrency: $this->fromCurrency->value,
             toCurrency: $this->toCurrency->value,
-            result: (float) $result,
+            result: $this->finalize($result),
             fromRate: 1,
-            toRate: $rate,
+            toRate: (float) $rate,
             amountInUzs: $this->amount,
             date: $date,
         );
@@ -248,40 +291,43 @@ class ConvertBuilder
      */
     protected function toUzs(string $date): ConversionResultDto
     {
-        $rate = $this->getRate($date, $this->fromCurrency->value);
-        $result = bcmul((string) $this->amount, (string) $rate, $this->scale);
+        $rate = $this->getUnitRate($date, $this->fromCurrency->value);
+        $result = bcmul(self::toDecimal($this->amount), $rate, self::INTERNAL_SCALE);
 
         return new ConversionResultDto(
             amount: $this->amount,
             fromCurrency: $this->fromCurrency->value,
             toCurrency: $this->toCurrency->value,
-            result: (float) $result,
-            fromRate: $rate,
+            result: $this->finalize($result),
+            fromRate: (float) $rate,
             toRate: 1,
-            amountInUzs: (float) $result,
+            amountInUzs: $this->finalize($result),
             date: $date,
         );
     }
 
     /**
-     * Convert between two foreign currencies
+     * Convert between two foreign currencies (cross conversion through UZS)
+     *
+     * The intermediate UZS amount is kept at full internal precision —
+     * rounding happens only on the final values.
      */
     protected function crossConversion(string $date): ConversionResultDto
     {
-        $fromRate = $this->getRate($date, $this->fromCurrency->value);
-        $toRate = $this->getRate($date, $this->toCurrency->value);
+        $fromRate = $this->getUnitRate($date, $this->fromCurrency->value);
+        $toRate = $this->getUnitRate($date, $this->toCurrency->value);
 
-        $amountInUzs = bcmul((string) $this->amount, (string) $fromRate, $this->scale);
-        $result = bcdiv($amountInUzs, (string) $toRate, $this->scale);
+        $amountInUzs = bcmul(self::toDecimal($this->amount), $fromRate, self::INTERNAL_SCALE);
+        $result = bcdiv($amountInUzs, $toRate, self::INTERNAL_SCALE);
 
         return new ConversionResultDto(
             amount: $this->amount,
             fromCurrency: $this->fromCurrency->value,
             toCurrency: $this->toCurrency->value,
-            result: (float) $result,
-            fromRate: $fromRate,
-            toRate: $toRate,
-            amountInUzs: (float) $amountInUzs,
+            result: $this->finalize($result),
+            fromRate: (float) $fromRate,
+            toRate: (float) $toRate,
+            amountInUzs: $this->finalize($amountInUzs),
             date: $date,
         );
     }

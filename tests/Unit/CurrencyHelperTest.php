@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-use Cbu\Currency\Helpers\CurrencyHelper;
 use Cbu\Currency\Exceptions\CbuApiException;
+use Cbu\Currency\Helpers\CurrencyHelper;
 use Illuminate\Support\Facades\Log;
 
 describe('CurrencyHelper::isValidDate()', function () {
     test('validates correct date format', function () {
-        expect(fn() => CurrencyHelper::isValidDate('2025-01-15'))->not->toThrow(CbuApiException::class);
-        expect(fn() => CurrencyHelper::isValidDate('2024-12-31'))->not->toThrow(CbuApiException::class);
-        expect(fn() => CurrencyHelper::isValidDate('2023-06-01'))->not->toThrow(CbuApiException::class);
+        expect(fn () => CurrencyHelper::isValidDate('2025-01-15'))->not->toThrow(CbuApiException::class);
+        expect(fn () => CurrencyHelper::isValidDate('2024-12-31'))->not->toThrow(CbuApiException::class);
+        expect(fn () => CurrencyHelper::isValidDate('2023-06-01'))->not->toThrow(CbuApiException::class);
     });
 
     test('throws exception for invalid date format', function () {
@@ -38,7 +38,7 @@ describe('CurrencyHelper::isValidDate()', function () {
     })->throws(CbuApiException::class);
 
     test('accepts leap year dates', function () {
-        expect(fn() => CurrencyHelper::isValidDate('2024-02-29'))->not->toThrow(CbuApiException::class);
+        expect(fn () => CurrencyHelper::isValidDate('2024-02-29'))->not->toThrow(CbuApiException::class);
     });
 
     test('throws exception for non-leap year February 29', function () {

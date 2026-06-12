@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Cbu\Currency\Console\Commands;
 
+use Carbon\Carbon;
 use Cbu\Currency\Exceptions\CbuApiException;
 use Cbu\Currency\Facades\CbuCurrency;
 use Cbu\Currency\Helpers\CurrencyHelper;
@@ -50,6 +51,7 @@ class SyncRatesCommand extends Command
                 CurrencyHelper::isValidDate($date);
             } catch (CbuApiException $e) {
                 $this->error($e->getMessage());
+
                 return self::FAILURE;
             }
 
@@ -64,6 +66,7 @@ class SyncRatesCommand extends Command
         // If only one date is provided, show error
         if ($fromDate || $toDate) {
             $this->error('Both --from and --to options must be provided when using date range');
+
             return self::FAILURE;
         }
 
@@ -72,6 +75,7 @@ class SyncRatesCommand extends Command
 
         if ($days < 1 || $days > 365) {
             $this->error('Number of days must be between 1 and 365');
+
             return self::FAILURE;
         }
 
@@ -91,7 +95,7 @@ class SyncRatesCommand extends Command
                 ->date($date)
                 ->save();
 
-            $this->info('✓ ' . $result['message']);
+            $this->info('✓ '.$result['message']);
             $this->newLine();
             $this->line("Rates saved: {$result['rates_saved']}");
             $this->line("Rates updated: {$result['rates_updated']}");
@@ -100,7 +104,8 @@ class SyncRatesCommand extends Command
 
             return self::SUCCESS;
         } catch (CbuApiException $e) {
-            $this->error('✗ ' . $e->getMessage());
+            $this->error('✗ '.$e->getMessage());
+
             return self::FAILURE;
         }
     }
@@ -132,15 +137,17 @@ class SyncRatesCommand extends Command
             CurrencyHelper::isValidDate($toDate);
         } catch (CbuApiException $e) {
             $this->error($e->getMessage());
+
             return self::FAILURE;
         }
 
-        $from = \Carbon\Carbon::parse($fromDate);
-        $to = \Carbon\Carbon::parse($toDate);
+        $from = Carbon::parse($fromDate);
+        $to = Carbon::parse($toDate);
 
         // Ensure from date is before or equal to date
         if ($from->greaterThan($to)) {
             $this->error('Start date must be before or equal to end date');
+
             return self::FAILURE;
         }
 
@@ -148,6 +155,7 @@ class SyncRatesCommand extends Command
         $daysDifference = $from->diffInDays($to) + 1;
         if ($daysDifference > 365) {
             $this->error('Date range cannot exceed 365 days');
+
             return self::FAILURE;
         }
 
@@ -168,7 +176,7 @@ class SyncRatesCommand extends Command
     /**
      * Process sync for given dates
      *
-     * @param array<string> $dates Array of dates in Y-m-d format
+     * @param  array<string>  $dates  Array of dates in Y-m-d format
      */
     protected function processDates(array $dates): int
     {
@@ -212,7 +220,7 @@ class SyncRatesCommand extends Command
         // Display summary
         $this->info('✓ Sync completed');
         $this->newLine();
-        $this->line("Days processed: " . count($dates));
+        $this->line('Days processed: '.count($dates));
         $this->line("Successful: {$successfulDays}");
 
         if ($failedDays > 0) {

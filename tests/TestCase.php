@@ -17,7 +17,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         // Run migrations
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
     }
 
     protected function getPackageProviders($app): array
@@ -39,19 +39,11 @@ class TestCase extends Orchestra
 
         // Set CBU Currency config
         $app['config']->set('cbu-currency.source', 'database');
-        $app['config']->set('cbu-currency.scale', 2);
+        $app['config']->set('cbu-currency.scale', 0);
         $app['config']->set('cbu-currency.cache_duration', null);
         $app['config']->set('cbu-currency.log_enabled', false);
+        $app['config']->set('cbu-currency.routes.enabled', true);
         $app['config']->set('cbu-currency.routes.prefix', 'api/cbu');
         $app['config']->set('cbu-currency.routes.middleware', []);
-    }
-
-    protected function defineRoutes($router): void
-    {
-        $router->group([
-            'prefix' => 'api/cbu',
-        ], function ($router) {
-            require __DIR__ . '/../routes/api.php';
-        });
     }
 }

@@ -25,8 +25,6 @@ class CurrencyRateController extends Controller
      * Returns all currency exchange rates for the specified date.
      * If no date provided, returns today's rates.
      *
-     * @param GetRatesRequest $request
-     * @return JsonResponse
      *
      * @example
      * GET /api/currency/rates?date=2025-01-15
@@ -83,8 +81,6 @@ class CurrencyRateController extends Controller
      * Returns the exchange rate for a specific currency on a given date.
      * If no date provided, returns today's rate.
      *
-     * @param GetRateByCcyRequest $request
-     * @return JsonResponse
      *
      * @example
      * GET /api/currency/rates/USD?date=2025-01-15
@@ -150,7 +146,6 @@ class CurrencyRateController extends Controller
      *
      * Convenience endpoint to fetch today's rates without date parameter.
      *
-     * @return JsonResponse
      *
      * @example
      * GET /api/currency/rates/today

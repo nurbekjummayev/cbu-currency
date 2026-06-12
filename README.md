@@ -42,10 +42,12 @@ A Laravel package for working with Central Bank of Uzbekistan (CBU) currency exc
 
 ## 📦 Requirements
 
-- PHP ^8.1|^8.2|^8.3|^8.4
-- Laravel ^10.0|^11.0|^12.0
+- PHP 8.1 – 8.5
+- Laravel ^10.0|^11.0|^12.0|^13.0
 - BCMath PHP Extension
 - GuzzleHTTP ^7.0
+
+> **Note:** Laravel 11/12 require PHP >= 8.2, and Laravel 13 requires PHP >= 8.3. PHP 8.1 works with Laravel 10 only.
 
 ## 🚀 Installation
 
@@ -80,8 +82,12 @@ return [
     // Default currency code
     'default_currency' => env('CBU_DEFAULT_CURRENCY', 'USD'),
 
-    // BCMath calculation scale (decimal places)
-    'scale' => env('CBU_SCALE', 2),
+    // Decimal places for the FINAL conversion result (default: 0 = no
+    // rounding, full computed precision). Internal calculations always run
+    // at full precision and are never rounded mid-calculation. Set a
+    // positive value or use ->scale(n) per call to round the final result
+    // half-up, or round the returned result yourself with ->round(n).
+    'scale' => env('CBU_SCALE', 0),
 
     // Data source: 'database' or 'api'
     'source' => env('CBU_SOURCE', 'database'),
@@ -91,7 +97,8 @@ return [
 
     // API routes configuration
     'routes' => [
-        'prefix' => env('CBU_ROUTES_PREFIX', 'api/cbu'),
+        'enabled' => env('CBU_ROUTES_ENABLED', true),
+        'prefix' => env('CBU_ROUTES_PREFIX', 'api/currency'),
         'middleware' => ['api'],
     ],
 ];
@@ -105,10 +112,11 @@ Add to your `.env` file:
 CBU_BASE_URL=https://cbu.uz/ru/arkhiv-kursov-valyut/json
 CBU_CACHE_DURATION=60
 CBU_DEFAULT_CURRENCY=USD
-CBU_SCALE=2
+CBU_SCALE=0
 CBU_SOURCE=database
 CBU_LOG_ENABLED=true
-CBU_ROUTES_PREFIX=api/cbu
+CBU_ROUTES_ENABLED=true
+CBU_ROUTES_PREFIX=api/currency
 ```
 
 ### Data Source
@@ -757,7 +765,8 @@ Content-Type: application/json
   "amount": 100,
   "from": "USD",
   "to": "EUR",
-  "date": "2025-01-15"
+  "date": "2025-01-15",
+  "scale": 2
 }
 ```
 
@@ -785,18 +794,19 @@ Content-Type: application/json
 - `from` - required, valid 3-letter currency code
 - `to` - required, valid 3-letter currency code
 - `date` - optional, Y-m-d format, cannot be future date
+- `scale` - optional, integer 0–20; when sent, the final result is rounded to that many decimals, otherwise full precision is returned
 
 ### 8. Get Conversion Rate
 
 ```http
-GET /api/cbu/convert/rate/{from}/{to}?date={date}
+GET /api/cbu/convert/rate/{from}/{to}?date={date}&scale={scale}
 ```
 
-Returns the conversion rate for 1 unit of source currency.
+Returns the conversion rate for 1 unit of source currency. The optional `scale` query parameter (0–20) rounds the final result; without it the full-precision value is returned.
 
 **Example:**
 ```http
-GET /api/cbu/convert/rate/USD/EUR?date=2025-01-15
+GET /api/cbu/convert/rate/USD/EUR?date=2025-01-15&scale=4
 ```
 
 **Response:**
@@ -839,11 +849,12 @@ All endpoints return a consistent error format:
 
 ### Customizing API Routes
 
-You can customize the API route prefix in `config/cbu-currency.php`:
+You can enable/disable package routes and customize the route prefix in `config/cbu-currency.php`:
 
 ```php
 'routes' => [
-    'prefix' => env('CBU_ROUTES_PREFIX', 'api/cbu'),
+    'enabled' => env('CBU_ROUTES_ENABLED', true),
+    'prefix' => env('CBU_ROUTES_PREFIX', 'api/currency'),
     'middleware' => ['api'],
 ],
 ```
@@ -851,8 +862,25 @@ You can customize the API route prefix in `config/cbu-currency.php`:
 Or in `.env`:
 
 ```env
+CBU_ROUTES_ENABLED=true
 CBU_ROUTES_PREFIX=api/v1/currency
 ```
+
+If you only use the package via the `CbuCurrency` facade and don't need the built-in HTTP endpoints, disable them entirely:
+
+```env
+CBU_ROUTES_ENABLED=false
+```
+
+## 🤖 AI / Laravel Boost Integration
+
+This package ships with [Laravel Boost](https://laravel.com/docs/boost) AI guidelines and an agent skill (`cbu-currency-development`). If your project uses Boost, run:
+
+```bash
+php artisan boost:install
+```
+
+Boost will automatically detect this package and offer to install its guidelines and skill, so AI agents (Claude Code, Cursor, Codex, etc.) know how to use the `CbuCurrency` facade, builders, sync commands, and API endpoints correctly. To pick up the skill after adding this package to an existing Boost setup, run `php artisan boost:update --discover`.
 
 ## 📄 License
 

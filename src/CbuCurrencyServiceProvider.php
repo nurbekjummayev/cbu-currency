@@ -7,12 +7,15 @@ namespace Cbu\Currency;
 use Cbu\Currency\Console\Commands\SyncCurrenciesCommand;
 use Cbu\Currency\Console\Commands\SyncRatesCommand;
 use Cbu\Currency\Enums\CurrencySource;
+use Cbu\Currency\Mcp\CbuCurrencyServer;
 use Cbu\Currency\Repositories\ApiCurrencyRepository;
 use Cbu\Currency\Repositories\DatabaseCurrencyRepository;
 use Cbu\Currency\Repositories\Interfaces\CurrencyRepositoryInterface;
 use Cbu\Currency\Services\CbuCurrency;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Mcp\Facades\Mcp;
+use Laravel\Mcp\Server;
 
 class CbuCurrencyServiceProvider extends ServiceProvider
 {
@@ -54,6 +57,7 @@ class CbuCurrencyServiceProvider extends ServiceProvider
     {
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->registerRoutes();
+        $this->registerMcpServer();
 
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -95,5 +99,37 @@ class CbuCurrencyServiceProvider extends ServiceProvider
         ], function () {
             $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
         });
+    }
+
+    /**
+     * Register the MCP server for AI agents
+     *
+     * Only active when the optional laravel/mcp package is installed and
+     * the cbu-currency.mcp.enabled config is not disabled. Registers a
+     * local (stdio) server and, optionally, a web (HTTP) server.
+     */
+    protected function registerMcpServer(): void
+    {
+        if (! class_exists(Server::class)) {
+            return;
+        }
+
+        $config = config('cbu-currency.mcp', []);
+
+        if (! ($config['enabled'] ?? true)) {
+            return;
+        }
+
+        Mcp::local(
+            $config['name'] ?? 'cbu-currency',
+            CbuCurrencyServer::class
+        );
+
+        if ($config['web']['enabled'] ?? false) {
+            Mcp::web(
+                $config['web']['path'] ?? '/mcp/cbu-currency',
+                CbuCurrencyServer::class
+            )->middleware($config['web']['middleware'] ?? ['api']);
+        }
     }
 }

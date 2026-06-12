@@ -882,6 +882,50 @@ php artisan boost:install
 
 Boost will automatically detect this package and offer to install its guidelines and skill, so AI agents (Claude Code, Cursor, Codex, etc.) know how to use the `CbuCurrency` facade, builders, sync commands, and API endpoints correctly. To pick up the skill after adding this package to an existing Boost setup, run `php artisan boost:update --discover`.
 
+### MCP Server (AI Agent Tools)
+
+The package ships an MCP (Model Context Protocol) server that lets AI agents call currency tools directly. It activates automatically when the optional [laravel/mcp](https://laravel.com/docs/mcp) package is installed:
+
+```bash
+composer require laravel/mcp
+```
+
+Available tools:
+
+| Tool | Description |
+| --- | --- |
+| `get-rates` | All CBU rates for a date |
+| `get-rate` | Single currency rate by code and date |
+| `convert-currency` | Convert between currencies (optional `scale` for rounding) |
+| `list-currencies` | Currency metadata with multilingual names |
+| `sync-rates` | Sync rates from the CBU API into the database |
+
+The local (stdio) server is registered as `cbu-currency`. Connect it to your AI agent, e.g. for Claude Code:
+
+```bash
+claude mcp add cbu-currency -- php artisan mcp:start cbu-currency
+```
+
+Test it with the MCP Inspector:
+
+```bash
+php artisan mcp:inspector cbu-currency
+```
+
+Configuration (`config/cbu-currency.php`):
+
+```php
+'mcp' => [
+    'enabled' => env('CBU_MCP_ENABLED', true),
+    'name' => env('CBU_MCP_NAME', 'cbu-currency'),
+    'web' => [
+        'enabled' => env('CBU_MCP_WEB_ENABLED', false), // opt-in HTTP server
+        'path' => env('CBU_MCP_WEB_PATH', '/mcp/cbu-currency'),
+        'middleware' => ['api'],
+    ],
+],
+```
+
 ## 📄 License
 
 MIT License. See [LICENSE](LICENSE) file for details.

@@ -87,4 +87,25 @@ return [
         'prefix' => env('CBU_ROUTES_PREFIX', 'api/currency'),
         'middleware' => ['api'],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | MCP Server (AI Agents)
+    |--------------------------------------------------------------------------
+    |
+    | Exposes currency tools to AI agents via the Model Context Protocol.
+    | Requires the optional laravel/mcp package — without it this section
+    | is ignored. The local (stdio) server is registered by default; the
+    | web (HTTP) server is opt-in and should be protected with middleware.
+    |
+    */
+    'mcp' => [
+        'enabled' => env('CBU_MCP_ENABLED', true),
+        'name' => env('CBU_MCP_NAME', 'cbu-currency'),
+        'web' => [
+            'enabled' => env('CBU_MCP_WEB_ENABLED', false),
+            'path' => env('CBU_MCP_WEB_PATH', '/mcp/cbu-currency'),
+            'middleware' => ['api'],
+        ],
+    ],
 ];

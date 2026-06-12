@@ -6,6 +6,7 @@ namespace Cbu\Currency\Tests;
 
 use Cbu\Currency\CbuCurrencyServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Mcp\Server\McpServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 
 class TestCase extends Orchestra
@@ -22,9 +23,17 @@ class TestCase extends Orchestra
 
     protected function getPackageProviders($app): array
     {
-        return [
-            CbuCurrencyServiceProvider::class,
-        ];
+        $providers = [];
+
+        // laravel/mcp is an optional dependency — register its provider
+        // (before ours) only when it is installed.
+        if (class_exists(McpServiceProvider::class)) {
+            $providers[] = McpServiceProvider::class;
+        }
+
+        $providers[] = CbuCurrencyServiceProvider::class;
+
+        return $providers;
     }
 
     protected function getEnvironmentSetUp($app): void

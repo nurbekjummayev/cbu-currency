@@ -131,6 +131,10 @@ The package registers routes under the configured prefix (`CBU_ROUTES_PREFIX`, d
 
 Disable all package routes with `CBU_ROUTES_ENABLED=false` (or `cbu-currency.routes.enabled` config) when the host app only uses the facade.
 
+## MCP server (AI agent tools)
+
+When the optional `laravel/mcp` package is installed, the package registers a local MCP server named `cbu-currency` (configurable via `cbu-currency.mcp`). Tools: `get-rates`, `get-rate`, `convert-currency` (optional `scale`), `list-currencies`, `sync-rates`. Start with `php artisan mcp:start cbu-currency`, debug with `php artisan mcp:inspector cbu-currency`. An opt-in HTTP server is available via `CBU_MCP_WEB_ENABLED=true`.
+
 ## Configuration reference
 
 Publish with `php artisan vendor:publish --tag=cbu-currency-config`. Keys in `config/cbu-currency.php`:

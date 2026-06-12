@@ -878,6 +878,50 @@ php artisan boost:install
 
 Boost bu paketni avtomatik aniqlab, guideline va skill'ni o'rnatishni taklif qiladi — natijada AI agentlar (Claude Code, Cursor, Codex va h.k.) `CbuCurrency` facade, builder'lar, sync buyruqlari va API endpointlardan to'g'ri foydalanishni biladi. Paketni mavjud Boost o'rnatilgan loyihaga keyin qo'shgan bo'lsangiz, `php artisan boost:update --discover` buyrug'ini ishlating.
 
+### MCP Server (AI Agent Tool'lari)
+
+Paket AI agentlar to'g'ridan-to'g'ri chaqira oladigan MCP (Model Context Protocol) serverini taqdim etadi. Ixtiyoriy [laravel/mcp](https://laravel.com/docs/mcp) paketi o'rnatilganda avtomatik faollashadi:
+
+```bash
+composer require laravel/mcp
+```
+
+Mavjud tool'lar:
+
+| Tool | Tavsif |
+| --- | --- |
+| `get-rates` | Sana bo'yicha barcha CBU kurslari |
+| `get-rate` | Kod va sana bo'yicha bitta valyuta kursi |
+| `convert-currency` | Valyutalar orasida konvertatsiya (ixtiyoriy `scale` bilan yaxlitlash) |
+| `list-currencies` | Ko'p tilli nomlar bilan valyuta ma'lumotlari |
+| `sync-rates` | CBU API'dan bazaga kurslarni sinxronlash |
+
+Local (stdio) server `cbu-currency` nomi bilan ro'yxatdan o'tadi. AI agentga ulash, masalan Claude Code uchun:
+
+```bash
+claude mcp add cbu-currency -- php artisan mcp:start cbu-currency
+```
+
+MCP Inspector bilan tekshirish:
+
+```bash
+php artisan mcp:inspector cbu-currency
+```
+
+Sozlash (`config/cbu-currency.php`):
+
+```php
+'mcp' => [
+    'enabled' => env('CBU_MCP_ENABLED', true),
+    'name' => env('CBU_MCP_NAME', 'cbu-currency'),
+    'web' => [
+        'enabled' => env('CBU_MCP_WEB_ENABLED', false), // ixtiyoriy HTTP server
+        'path' => env('CBU_MCP_WEB_PATH', '/mcp/cbu-currency'),
+        'middleware' => ['api'],
+    ],
+],
+```
+
 ## 📄 Litsenziya
 
 MIT litsenziyasi. Batafsil ma'lumot uchun [LICENSE](LICENSE) faylini ko'ring.

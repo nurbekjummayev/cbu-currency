@@ -14,18 +14,9 @@ use Illuminate\Support\Facades\Http;
 use Laravel\Ai\Contracts\Tool;
 use Laravel\Ai\Tools\Request;
 
-// The Laravel AI SDK (laravel/ai) requires PHP 8.3+, so it is an optional dev
-// dependency installed only on the Laravel 13+ CI jobs. Skip these tests when
-// it is not present instead of failing to autoload the tool classes.
-beforeEach(function () {
-    if (! interface_exists(Tool::class)) {
-        test()->markTestSkipped('laravel/ai is not installed (requires PHP 8.3+).');
-    }
-
-    // Drive the tools against the live API repository so the HTTP fakes below
-    // are exercised directly (the shared TestCase defaults source to "database").
-    config()->set('cbu-currency.source', 'api');
-});
+// Drive the tools against the live API repository so the HTTP fakes below are
+// exercised directly (the shared TestCase defaults the source to "database").
+beforeEach(fn () => config()->set('cbu-currency.source', 'api'));
 
 function aiUsdPayload(float $rate = 12352.86, string $date = '03.01.2024'): array
 {

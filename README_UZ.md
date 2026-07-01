@@ -1,8 +1,8 @@
 # CBU Currency - O'zbekiston Markaziy Banki Valyuta Kurslari
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PHP Version](https://img.shields.io/badge/PHP-%5E8.1%7C%5E8.2%7C%5E8.3%7C%5E8.4-blue)](https://www.php.net/)
-[![Laravel Version](https://img.shields.io/badge/Laravel-%5E10%7C%5E11%7C%5E12-red)](https://laravel.com/)
+[![PHP Version](https://img.shields.io/badge/PHP-%5E8.3%7C%5E8.4%7C%5E8.5-blue)](https://www.php.net/)
+[![Laravel Version](https://img.shields.io/badge/Laravel-%5E13-red)](https://laravel.com/)
 [![Tests](https://img.shields.io/badge/tests-43%20passed-brightgreen)](https://pestphp.com/)
 
 O'zbekiston Markaziy Banki (CBU) valyuta kurslari bilan oson va qulay ishlash uchun mo'ljallangan Laravel paketi. Bu paket valyuta kurslarini olish, saqlash va yuqori aniqlikda (BCMath) konvertatsiya qilish uchun qulay metodlarni taqdim etadi.
@@ -38,12 +38,12 @@ O'zbekiston Markaziy Banki (CBU) valyuta kurslari bilan oson va qulay ishlash uc
 
 ## 📦 Talablar
 
-- PHP 8.1 – 8.5
-- Laravel ^10.0|^11.0|^12.0|^13.0
+- PHP 8.3 – 8.5
+- Laravel ^13.0
 - BCMath PHP Extension
 - GuzzleHTTP ^7.0
 
-> **Eslatma:** Laravel 11/12 uchun PHP >= 8.2, Laravel 13 uchun PHP >= 8.3 talab qilinadi. PHP 8.1 faqat Laravel 10 bilan ishlaydi.
+> **Eslatma:** Ushbu paket Laravel 13 va undan yuqori versiyalar uchun mo'ljallangan, bu esa PHP >= 8.3 talab qiladi.
 
 ## 🚀 O'rnatish
 

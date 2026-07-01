@@ -1,8 +1,8 @@
 # CBU Currency - Central Bank of Uzbekistan Exchange Rates
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PHP Version](https://img.shields.io/badge/PHP-%5E8.1%7C%5E8.2%7C%5E8.3%7C%5E8.4-blue)](https://www.php.net/)
-[![Laravel Version](https://img.shields.io/badge/Laravel-%5E10%7C%5E11%7C%5E12-red)](https://laravel.com/)
+[![PHP Version](https://img.shields.io/badge/PHP-%5E8.3%7C%5E8.4%7C%5E8.5-blue)](https://www.php.net/)
+[![Laravel Version](https://img.shields.io/badge/Laravel-%5E13-red)](https://laravel.com/)
 [![Tests](https://img.shields.io/badge/tests-43%20passed-brightgreen)](https://pestphp.com/)
 
 A Laravel package for working with Central Bank of Uzbekistan (CBU) currency exchange rates. This package provides easy-to-use methods for fetching, storing, and converting currencies with high precision using BCMath.
@@ -42,12 +42,12 @@ A Laravel package for working with Central Bank of Uzbekistan (CBU) currency exc
 
 ## 📦 Requirements
 
-- PHP 8.1 – 8.5
-- Laravel ^10.0|^11.0|^12.0|^13.0
+- PHP 8.3 – 8.5
+- Laravel ^13.0
 - BCMath PHP Extension
 - GuzzleHTTP ^7.0
 
-> **Note:** Laravel 11/12 require PHP >= 8.2, and Laravel 13 requires PHP >= 8.3. PHP 8.1 works with Laravel 10 only.
+> **Note:** This package targets Laravel 13 and above, which requires PHP >= 8.3.
 
 ## 🚀 Installation
 

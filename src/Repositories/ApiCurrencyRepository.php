@@ -70,7 +70,7 @@ class ApiCurrencyRepository implements CurrencyRepositoryInterface
      */
     public function getRatesByDate(string $date): Collection
     {
-        $action = "/all/{$date}";
+        $action = "/all/{$date}/";
         $data = $this->send($action);
 
         return collect($data)->map(function ($item) use ($date) {
@@ -102,7 +102,7 @@ class ApiCurrencyRepository implements CurrencyRepositoryInterface
     public function getRateByCcy(string $date, CurrencyCcy|string $currencyCode): CurrencyRateDto
     {
         $ccy = $currencyCode instanceof CurrencyCcy ? $currencyCode->value : $currencyCode;
-        $action = "/{$ccy}/{$date}";
+        $action = "/{$ccy}/{$date}/";
         $data = $this->send($action)[0];
         $data['date'] = $date;
 

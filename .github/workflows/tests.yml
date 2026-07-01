@@ -52,6 +52,12 @@ jobs:
           extensions: bcmath, mbstring, sqlite3
           coverage: none
 
+      # The Laravel AI SDK (laravel/ai) requires PHP 8.3+, so it is only
+      # exercised on the Laravel 13 jobs. Its tests self-skip when absent.
+      - name: Require Laravel AI SDK (Laravel 13+)
+        if: matrix.laravel == '13'
+        run: composer require --dev "laravel/ai:^0.8" --no-interaction --no-update
+
       - name: Install dependencies
         run: composer update --prefer-dist --no-interaction --no-progress --with "illuminate/support:^${{ matrix.laravel }}.0"
 

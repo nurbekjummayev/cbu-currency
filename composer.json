@@ -33,9 +33,11 @@
     "nurbekjummayev/laravel-api-response-helpers": "^1.2"
   },
   "suggest": {
+    "laravel/ai": "Required to use the CBU Currency AI tools and agent with the Laravel AI SDK (^0.8).",
     "laravel/mcp": "Required to expose the CBU Currency MCP server (AI agent tools) (^0.8)."
   },
   "require-dev": {
+    "laravel/ai": "^0.8",
     "laravel/mcp": "^0.8.1",
     "laravel/pint": "^1.13",
     "mockery/mockery": "^1.5",
